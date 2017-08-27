@@ -18,7 +18,7 @@
   (testing "it detects an anomaly"
     (let [prediction-atom (atom [])
           prediction->atom-fn (fn [pred] (swap! prediction-atom #(conj % pred)))]
-      (with-redefs [utils/predictions->console prediction->atom-fn
+      (with-redefs [utils/prediction->console prediction->atom-fn
                     at/every (fn [_ fn _ _ _] (fn))
                     at/stop identity]
         (let [s (cp/start (c/conan-system {} (->TestProvider)))]

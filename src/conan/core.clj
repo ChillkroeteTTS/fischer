@@ -1,6 +1,6 @@
 (ns conan.core
   (:require [conan.anomaly-detection :as ad]
-            [conan.components.prometheus-detector :as pd]
+            [conan.components.detector :as d]
             [conan.components.gaussian-ad-trainer :as gadt]
             [de.otto.tesla.system :as system]
             [clj-time.core :as t]
@@ -20,7 +20,7 @@
 
 (defn conan-system [conf provider]
   (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider) [])
-                 :detector (cp/using (pd/new-prometheus-detector provider) [:model-trainer])))
+                 :detector (cp/using (d/new-detector provider) [:model-trainer])))
 
 (defn -main [& argv]
   (cp/start (conan-system {} prom-provider)))

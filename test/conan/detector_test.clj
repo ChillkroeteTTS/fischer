@@ -1,6 +1,6 @@
-(ns conan.prometheus-detector-test
+(ns conan.detector-test
   (:require [clojure.test :refer :all]
-            [conan.components.prometheus-detector :as pd]
+            [conan.components.detector :as d]
             [clojure.java.io :as io]
             [conan.anomaly-detection :as ad]
             [conan.time-series-provider :as p]))
@@ -17,7 +17,7 @@
             prediction-atom (atom [])
             sc-log-fn (fn [[profile score]] (swap! score-atom conj {profile score}))
             pr-log-fn (fn [[profile prediction]] (swap! prediction-atom conj {profile prediction}))]
-        (pd/detect nil sc-log-fn pr-log-fn trained-profiles 0.2)
-        (pd/detect nil sc-log-fn pr-log-fn trained-profiles 0.2)
+        (d/detect nil sc-log-fn pr-log-fn trained-profiles 0.2)
+        (d/detect nil sc-log-fn pr-log-fn trained-profiles 0.2)
         (is (= [{:profile1 0.1} {:profile1 0.1}] @score-atom))
         (is (= [{:profile1 false} {:profile1 false}] @prediction-atom))))))

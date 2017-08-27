@@ -6,8 +6,8 @@
 
 (deftest scores->file-test
   (let [file-path "test-resources/testscores"]
-    (utils/scores->file file-path [0.2 0.43 0.5])
-    (is (= "---\n0.2\n0.43\n0.5\n"
+    (utils/score->file file-path [:profile1 0.2])
+    (is (= "--- :profile1:\n0.2\n"
            (slurp file-path)))
     (io/delete-file file-path)))
 

@@ -15,7 +15,7 @@
                                                                      :days-back 7
                                                                      :queries   ["sum(rate(http_duration_in_s_count{job='my-second-job', stage='live'}[1m]))"]}}
 
- conan.components.prometheus-detector/epsylon               0.02
+ conan.components.detector/epsylon               0.02
 
- conan.components.prometheus-detector/repeat-in-ms          10000
+ conan.components.detector/repeat-in-ms          10000
  }
