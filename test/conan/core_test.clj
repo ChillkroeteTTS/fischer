@@ -9,10 +9,10 @@
 
 (defrecord TestProvider []
   p/TimeSeriesProvider
-  (prediction-data [_] {{:keymap1 1} [50.0]
-                          {:keymap2 2} [4.0]})
-  (training-data [_] {{:keymap1 1} [50.0 51.0]
-                      {:keymap2 2} [5.0 3.0]}))
+  (prediction-data [_] {:profile1 {{:keymap1 1} [50.0]
+                                   {:keymap2 2} [4.0]}})
+  (training-data [_] {:profile1 {{:keymap1 1} [50.0 51.0]
+                                 {:keymap2 2} [5.0 3.0]}}))
 
 (deftest core-test
   (testing "it detects an anomaly"

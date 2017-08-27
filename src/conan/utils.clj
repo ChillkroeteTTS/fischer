@@ -12,7 +12,7 @@
   (apply map vector matrix))
 
 (defn scores->file [file-path scores]
-  (with-open [w (clojure.java.io/writer file-path :append true)]
+  (with-open [w (clojure.java.io/writer file-path)]
     (.write w "---\n")
     (doseq [score scores] (.write w (str score "\n")))))
 
