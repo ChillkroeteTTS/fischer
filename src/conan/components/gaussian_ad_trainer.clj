@@ -33,21 +33,24 @@
     (log/info (format "After engineering, %s from %s original features remain" (count engineered) (count X-trans)))
     engineered))
 
+(defn- trained-profile [X-trans]
+  (let [key->props (key->properties X-trans)
+        mus+sigmas (some-> X-trans
+                                (utils/extract-bare-features key->props)
+                                (write-to-plate!)
+                                (ad/train))]
+    {:key->props (atom key->props)
+     :mus-and-sigmas (atom mus+sigmas)}))
+
 (defrecord GaussianAnomalyDetectionTrainer [ts-provider key->props mus-and-sigmas]
   cp/Lifecycle
   (start [self]
     (let [X-trans (second (first (p/training-data ts-provider))) ;; TODO: so far just a hack for one profile
-          key->props (key->properties X-trans)
-          key->props-atom (atom key->props)
-          mus-and-sigmas-atom (some-> X-trans
-                                      (utils/extract-bare-features key->props)
-                                      (write-to-plate!)
-                                      (ad/train)
-                                      (atom))]
+          trained (trained-profile X-trans)]
       (log/info "Register Gaussian anomaly detection trainer")
       (assoc self
-        :key->props key->props-atom
-        :mus-and-sigmas mus-and-sigmas-atom)))
+        :key->props (:key->props trained)
+        :mus-and-sigmas (:mus-and-sigmas trained))))
   (stop [self]
     (log/info "Stopping Gaussian anomaly detection trainer")
     self))
