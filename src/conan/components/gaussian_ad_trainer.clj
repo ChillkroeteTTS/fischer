@@ -45,9 +45,7 @@
 (defrecord GaussianAnomalyDetectionTrainer [ts-provider key->props mus-and-sigmas]
   cp/Lifecycle
   (start [self]
-    (let [profile+X-trans (first (p/training-data ts-provider))
-          X-trans (second profile+X-trans)
-          profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile X-trans)])
+    (let [profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile X-trans)])
           trained-profiles (->> ts-provider
                                 (p/training-data)
                                 (map profiles+trained-profiles)
