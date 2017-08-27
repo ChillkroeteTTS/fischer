@@ -28,6 +28,19 @@
                                         {:a :a} [1 2]
                                         {:b :b} [4 5 6]})))))
 
+(deftest fill-time-series-gaps
+  (testing "it interpolates gaps(nils) in the time series if they appear only once"
+    (is (= {{:__name__ :metric1} [1 2 3 4]
+            {:__name__ :metric2} [nil 2 3 4]
+            {:__name__ :metric3} [1 2.0 3 4]
+            {:__name__ :metric4} [1 2 3.0 4]
+            {:__name__ :metric5} [1 2 3 nil]}
+           (#'gadt/fill-time-series-gaps {{:__name__ :metric1} [1 2 3 4]
+                                          {:__name__ :metric2} [nil 2 3 4]
+                                          {:__name__ :metric3} [1 nil 3 4]
+                                          {:__name__ :metric4} [1 2 nil 4]
+                                          {:__name__ :metric5} [1 2 3 nil]})))))
+
 (defn deatomized-trained-profile [rs] (into {} (map (fn [[k v]] [k @v]) rs)))
 (defn atomized-trained-profile [rs] (into {} (map (fn [[k v]] [k (atom v)]) rs)))
 

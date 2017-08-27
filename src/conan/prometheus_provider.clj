@@ -63,7 +63,7 @@
   (let [query-fn (fn [query] (some-> (prom-data-last-n-days host port query (t/now) days-back step-size)
                                      (featurize-prom-response :values)))
         merged-query-results (pmap-merge-reduce query-fn queries)]
-    (filter #() merged-query-results)))
+    merged-query-results))
 
 
 (defrecord PrometheusProvider [host port config]

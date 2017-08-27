@@ -33,9 +33,28 @@
     (log/info (format "After engineering, %s from %s original features remain" (count engineered) (count X-trans)))
     engineered))
 
+(defn- interpolate-if-nil [triple]
+  (if (= nil (nth triple 1))
+    [(nth triple 0)
+     (double (/ (+ (nth triple 0) (nth triple 2)) 2))
+     (nth triple 2)]
+    triple))
+
+(defn- fill-time-series-gaps [X-trans]
+  (if (>= (apply min (map #(count (second %)) X-trans)) 3)
+    (let [fill-gaps-in-series (fn [[k series]] [k (->> (partition 3 1 series)
+                                                       (map interpolate-if-nil)
+                                                       ((fn [lst] [(first (first lst))
+                                                                   (map #(nth % 1) lst)
+                                                                   (last (last lst))]))
+                                                       (flatten))])]
+      (into {} (map fill-gaps-in-series X-trans)))
+    X-trans))
+
 (defn- trained-profile [X-trans]
   (let [key->props (key->properties X-trans)
         mus+sigmas (some-> X-trans
+                           (fill-time-series-gaps)
                            (utils/extract-bare-features key->props)
                            (write-to-plate!)
                            (ad/train))]
