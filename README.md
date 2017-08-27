@@ -14,6 +14,7 @@ The main topics to come are:
 - Implement a reporter system to send alarms (http-call, mail etc.)
 - Implement a graphite provider
 - Figure out a good value for epsylon (almost no false positives, maybe different alarm modes?)
+- Train model in a configurable interval
 
 ## License
 

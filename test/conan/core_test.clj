@@ -22,6 +22,6 @@
                     at/every (fn [_ fn _ _ _] (fn))
                     at/stop identity]
         (let [s (cp/start (c/conan-system {} (->TestProvider)))]
-          (is (= [false]
-                 (first @prediction-atom)))
+          (is (= [[:profile1 false]]
+                 @prediction-atom))
           (cp/stop s))))))

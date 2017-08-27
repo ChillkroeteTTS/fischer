@@ -5,18 +5,19 @@
             [conan.anomaly-detection :as ad]
             [conan.time-series-provider :as p]))
 
-(def mus-and-sigmas (atom [{:mu 101/2, :sigma 0.25} {:mu 4, :sigma 1.0}]))
+(def trained-profiles {:profile1 {:key->props     (atom {})
+                                  :mus-and-sigmas (atom [{:mu 101/2, :sigma 0.25} {:mu 4, :sigma 1.0}])}})
 
 (deftest detect-test
-  (testing "it detects anomalies"
+  (testing "it detects anomalies on each call"
     (with-redefs [p/prediction-data (constantly nil)
-                  ad/scores (constantly [0.1 0.3])
-                  ad/predict (constantly [false true])]
+                  ad/scores (constantly [0.1])
+                  ad/predict (constantly [false])]
       (let [score-atom (atom [])
             prediction-atom (atom [])
-            sc-log-fn #(swap! score-atom concat %)
-            pr-log-fn #(swap! prediction-atom concat %)]
-        (pd/detect nil sc-log-fn pr-log-fn mus-and-sigmas (atom {}) 0.2)
-        (pd/detect nil sc-log-fn pr-log-fn mus-and-sigmas (atom {}) 0.2)
-        (is (= [0.1 0.3 0.1 0.3] @score-atom))
-        (is (= [false true false true] @prediction-atom))))))
+            sc-log-fn (fn [[profile score]] (swap! score-atom conj {profile score}))
+            pr-log-fn (fn [[profile prediction]] (swap! prediction-atom conj {profile prediction}))]
+        (pd/detect nil sc-log-fn pr-log-fn trained-profiles 0.2)
+        (pd/detect nil sc-log-fn pr-log-fn trained-profiles 0.2)
+        (is (= [{:profile1 0.1} {:profile1 0.1}] @score-atom))
+        (is (= [{:profile1 false} {:profile1 false}] @prediction-atom))))))

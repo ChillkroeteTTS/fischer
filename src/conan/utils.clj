@@ -11,13 +11,14 @@
 (defn transpose [matrix]
   (apply map vector matrix))
 
-(defn scores->file [file-path scores]
+(defn scores->file [file-path profile+scores]
   (with-open [w (clojure.java.io/writer file-path)]
     (.write w "---\n")
-    (doseq [score scores] (.write w (str score "\n")))))
+    (doseq [[profile score] profile+scores]
+      (.write w (str profile ":" score "\n")))))
 
-(defn predictions->console [predictions]
-  (prn predictions))
+(defn predictions->console [profiles+prediction]
+  (prn profiles+prediction))
 
 (defn filtered-keyset [key->props key->feature]
   (select-keys key->feature (keys key->props)))

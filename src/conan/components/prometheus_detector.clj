@@ -8,14 +8,33 @@
             [conan.time-series-provider :as p]
             [outpace.config :refer [defconfig!]]))
 
-(defn detect [ts-provider score-logging-fn prediction-logging-fn mus+sigmas-atom key->props-atom epsylon]
-  (log/info "Start detection with " @mus+sigmas-atom)
-  (let [features (utils/extract-bare-features (second (first (p/prediction-data ts-provider))) ;; TODO: multi profile fix
-                                              @key->props-atom)
-        scores (ad/scores features @mus+sigmas-atom)
-        predictions (ad/predict scores epsylon)]
-    (score-logging-fn scores)
-    (prediction-logging-fn predictions)))
+(defn- profile->features [ts-provider trained-profiles]
+  (let [profiles->X-trans (p/prediction-data ts-provider)
+        features (fn [[profile trained-profile]]
+                   [profile (utils/extract-bare-features (get profiles->X-trans profile)
+                                                         @(:key->props trained-profile))])]
+    (map features trained-profiles)))
+
+(defn profile->score [profile->trained-profile profile->features]
+  (let [score (fn [[profile features]]
+                           [profile (first (ad/scores features @(:mus-and-sigmas (get profile->trained-profile profile))))])]
+    (map score
+         profile->features)))
+
+(defn profile->prediction [epsylon profile->score]
+  (let [prediction (fn [[profile score]] [profile (first (ad/predict [score] epsylon))])]
+    (map prediction profile->score)))
+
+(defn detect [ts-provider score-logging-fn prediction-logging-fn trained-profiles epsylon]
+  ;;(log/info "Start detection with " @mus+sigmas-atom)
+  (let [profile->features (profile->features ts-provider trained-profiles)
+        profile->score (profile->score trained-profiles profile->features)
+        profile->prediction (profile->prediction epsylon profile->score)]
+
+    (doseq [profile+score profile->score]
+      (score-logging-fn profile+score))
+    (doseq [profile+prediction profile->prediction]
+      (prediction-logging-fn profile+prediction))))
 
 (defn exc-logger [fn]
   (try
@@ -29,15 +48,15 @@
 (defrecord PrometheusDetector [ts-provider model-trainer scheduled-fn]
   cp/Lifecycle
   (start [self]
-    (let [key->props-atom (get-in self [:model-trainer :key->props])
-          mus+sigma-atom (get-in self [:model-trainer :mus-and-sigmas])]
+    (let [trained-profiles (get-in self [:model-trainer :trained-profiles])
+          key->props-atom (:key->props (second (first trained-profiles)))
+          mus+sigma-atom (:mus-and-sigmas (second (first trained-profiles)))]
       (log/info "Register Prom Detector")
       (assoc self :scheduled-fn (at/every repeat-in-ms (partial exc-logger (partial detect
                                                                                     ts-provider
                                                                                     #(utils/scores->file "./scores" %)
                                                                                     utils/predictions->console
-                                                                                    mus+sigma-atom
-                                                                                    key->props-atom
+                                                                                    trained-profiles
                                                                                     epsylon))
                                           (at/mk-pool)
                                           :desc "Prom-Detector-Checker"))

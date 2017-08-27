@@ -28,29 +28,33 @@
         max-values (apply max no-values-per-feature)
         keep-complete-features (fn [[k-map vals]] (= (count vals) max-values))
         engineered (->> X-trans
-                   (filter keep-complete-features)
-                   (into {}))]
+                        (filter keep-complete-features)
+                        (into {}))]
     (log/info (format "After engineering, %s from %s original features remain" (count engineered) (count X-trans)))
     engineered))
 
 (defn- trained-profile [X-trans]
   (let [key->props (key->properties X-trans)
         mus+sigmas (some-> X-trans
-                                (utils/extract-bare-features key->props)
-                                (write-to-plate!)
-                                (ad/train))]
-    {:key->props (atom key->props)
+                           (utils/extract-bare-features key->props)
+                           (write-to-plate!)
+                           (ad/train))]
+    {:key->props     (atom key->props)
      :mus-and-sigmas (atom mus+sigmas)}))
 
 (defrecord GaussianAnomalyDetectionTrainer [ts-provider key->props mus-and-sigmas]
   cp/Lifecycle
   (start [self]
-    (let [X-trans (second (first (p/training-data ts-provider))) ;; TODO: so far just a hack for one profile
-          trained (trained-profile X-trans)]
+    (let [profile+X-trans (first (p/training-data ts-provider))
+          X-trans (second profile+X-trans)
+          profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile X-trans)])
+          trained-profiles (->> ts-provider
+                                (p/training-data)
+                                (map profiles+trained-profiles)
+                                (into {}))]
       (log/info "Register Gaussian anomaly detection trainer")
       (assoc self
-        :key->props (:key->props trained)
-        :mus-and-sigmas (:mus-and-sigmas trained))))
+        :trained-profiles trained-profiles)))
   (stop [self]
     (log/info "Stopping Gaussian anomaly detection trainer")
     self))
