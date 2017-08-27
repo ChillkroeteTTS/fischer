@@ -12,7 +12,7 @@
   (apply map vector matrix))
 
 (defn score->file [file-path [profile score]]
-  (with-open [w (clojure.java.io/writer file-path)]
+  (with-open [w (clojure.java.io/writer file-path :append true)]
     (.write w (str "--- " profile ":\n"))
     (.write w (str score "\n"))))
 
