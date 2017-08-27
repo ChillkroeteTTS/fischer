@@ -1,0 +1,21 @@
+{
+
+ ;; CONFIG ENTRIES:
+
+ conan.components.gaussian-ad-trainer/training-data-to-disk false
+
+ conan.core/host                                            "http://my-prometheus-ho.st"
+
+ conan.core/port                                            8080
+
+ conan.core/prometheus-provider-config                      {:morbo {:step-size "10m"
+                                                                     :days-back 7
+                                                                     :queries   ["sum(rate(http_duration_in_s_count{job='my-job', stage='live'}[1m]))"]}
+                                                             :meta  {:step-size "10m"
+                                                                     :days-back 7
+                                                                     :queries   ["sum(rate(http_duration_in_s_count{job='my-second-job', stage='live'}[1m]))"]}}
+
+ conan.components.prometheus-detector/epsylon               0.02
+
+ conan.components.prometheus-detector/repeat-in-ms          10000
+ }
