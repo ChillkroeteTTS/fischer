@@ -16,6 +16,10 @@ The main topics to come are:
 - Figure out a good value for epsylon (almost no false positives, maybe different alarm modes?)
 - Train model in a configurable interval
 
+## Usage
+The entire configuration is done from a file called `config.edn` located in the working directory.
+See `EXAMPLE_config.edn` for documentation.
+
 ## License
 
 Copyright © 2017 Tjark Smalla
