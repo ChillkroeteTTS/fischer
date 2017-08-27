@@ -40,7 +40,9 @@
         vals (->> (get result value-key)
                   ((fn [res] (if (= :value value-key) [res] res)))
                   (map second)
-                  (map #(Float/parseFloat %)))]
+                  (map (fn [val] (case val
+                                   ("+Inf" "NaN") nil
+                                   (Float/parseFloat val)))))]
     [keymap vals]))
 
 (defn- featurize-prom-response [resp value-key]
@@ -54,14 +56,14 @@
 
 (defn- prediction-data-results [host port {:keys [queries]}]
   (pmap-merge-reduce #(some-> (prom-data-now host port %)
-                             (featurize-prom-response :value))
+                              (featurize-prom-response :value))
                      queries))
 
 (defn- profile-results [host port {:keys [queries days-back step-size]}]
   (let [query-fn (fn [query] (some-> (prom-data-last-n-days host port query (t/now) days-back step-size)
-                                     (featurize-prom-response :values)))]
-    (pmap-merge-reduce query-fn
-                       queries)))
+                                     (featurize-prom-response :values)))
+        merged-query-results (pmap-merge-reduce query-fn queries)]
+    (filter #() merged-query-results)))
 
 
 (defrecord PrometheusProvider [host port config]
