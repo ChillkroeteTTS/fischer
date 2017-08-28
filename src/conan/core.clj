@@ -10,16 +10,20 @@
             [overtone.at-at :as at]
             [conan.utils :as utils]
             [conan.prometheus-provider :as prom]
-            [outpace.config :refer [defconfig!]]))
+            [outpace.config :refer [defconfig!]]
+            [clojure.spec.alpha :as s]))
+
+(s/def ::profiles (s/keys :req-un [::step-size ::days-back ::queries ::epsylon]))
 
 (defconfig! host)
 (defconfig! port)
-(defconfig! prometheus-provider-config)
+(defconfig! profiles)
 
-(def prom-provider (prom/->PrometheusProvider host port prometheus-provider-config))
+(def prom-provider (prom/->PrometheusProvider host port profiles))
 
 (defn conan-system [conf provider]
-  (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider) [])
+  (s/assert ::profiles profiles)
+  (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider profiles) [])
                  :detector (cp/using (d/new-detector provider) [:model-trainer])))
 
 (defn -main [& argv]

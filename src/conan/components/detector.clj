@@ -21,19 +21,20 @@
     (map score
          profile->features)))
 
-(defn profile->prediction [epsylon profile->score]
-  (let [prediction (fn [[profile score]] [profile (first (ad/predict [score] epsylon))])]
+(defn profile->prediction [profile->epsylon profile->score]
+  (let [prediction (fn [[profile score]] [profile (first (ad/predict [score] (get profile->epsylon profile)))])]
     (map prediction profile->score)))
 
-(defn detect [ts-provider score-logging-fn prediction-logging-fn trained-profiles epsylon]
+(defn detect [ts-provider score-logging-fn prediction-logging-fn trained-profiles]
   (let [run-all (fn [fn coll] (doseq [e coll] (fn e)) coll)
-        profile->mus-and-sigmas (into {} (map (fn [[k v]] [k @(:mus-and-sigmas v)]) trained-profiles))
-        profile->key->props (into {} (map (fn [[k v]] [k @(:key->props v)]) trained-profiles))]
+        profile->mus-and-sigmas (into {} (map (fn [[k v]] [k (:mus-and-sigmas @v)]) trained-profiles))
+        profile->key->props (into {} (map (fn [[k v]] [k (:key->props @v)]) trained-profiles))
+        profile->epsylon (into {} (map (fn [[k v]] [k (:epsylon @v)]) trained-profiles))]
     ;;(log/info "Start detection with " @mus+sigmas-atom)
     (->> (profile->features ts-provider profile->key->props)
          (profile->score profile->mus-and-sigmas)
          (#(run-all score-logging-fn %))
-         (profile->prediction epsylon)
+         (profile->prediction profile->epsylon)
          (#(run-all prediction-logging-fn %)))))
 
 (defn exc-logger [fn]
@@ -43,21 +44,17 @@
       (log/error e))))
 
 (defconfig! repeat-in-ms)
-(defconfig! epsylon)
 
 (defrecord Detector [ts-provider model-trainer scheduled-fn]
   cp/Lifecycle
   (start [self]
-    (let [trained-profiles (get-in self [:model-trainer :trained-profiles])
-          key->props-atom (:key->props (second (first trained-profiles)))
-          mus+sigma-atom (:mus-and-sigmas (second (first trained-profiles)))]
+    (let [trained-profiles (get-in self [:model-trainer :trained-profiles])]
       (log/info "Register Prom Detector")
       (assoc self :scheduled-fn (at/every repeat-in-ms (partial exc-logger (partial detect
                                                                                     ts-provider
                                                                                     #(utils/score->file "./scores" %)
                                                                                     utils/prediction->console
-                                                                                    trained-profiles
-                                                                                    epsylon))
+                                                                                    trained-profiles))
                                           (at/mk-pool)
                                           :desc "Prom-Detector-Checker"))
       ))

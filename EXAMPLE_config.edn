@@ -13,7 +13,7 @@
  ;; Prometheus query config.
  ;; Different profiles containing an arbitrary number of queries prometheus queries can be defined.
  ;; Each profile is checked independently for anomalies in queried data.
- conan.core/prometheus-provider-config                      {:my-job        {:step-size "10m"
+ conan.core/profiles                      {:my-job        {:step-size "10m"
                                                                              :days-back 7
                                                                              :queries   ["sum(rate(http_duration_in_s_count{job='my-job', stage='live'}[1m]))"]}
                                                              :my-second-job {:step-size "10m"

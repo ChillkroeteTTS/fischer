@@ -51,20 +51,21 @@
       (into {} (map fill-gaps-in-series X-trans)))
     X-trans))
 
-(defn- trained-profile [X-trans]
+(defn- trained-profile [config X-trans]
   (let [key->props (key->properties X-trans)
         mus+sigmas (some-> X-trans
                            (fill-time-series-gaps)
                            (utils/extract-bare-features key->props)
                            (write-to-plate!)
                            (ad/train))]
-    {:key->props     (atom key->props)
-     :mus-and-sigmas (atom mus+sigmas)}))
+    (atom {:key->props     key->props
+           :mus-and-sigmas mus+sigmas
+           :epsylon        (:epsylon config)})))
 
-(defrecord GaussianAnomalyDetectionTrainer [ts-provider key->props mus-and-sigmas]
+(defrecord GaussianAnomalyDetectionTrainer [ts-provider profiles key->props mus-and-sigmas]
   cp/Lifecycle
   (start [self]
-    (let [profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile X-trans)])
+    (let [profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile (get profiles profile) X-trans)])
           trained-profiles (->> ts-provider
                                 (p/training-data)
                                 (map profiles+trained-profiles)
@@ -77,5 +78,6 @@
     self))
 
 
-(defn new-gaussian-ad-trainer [provider]
-  (map->GaussianAnomalyDetectionTrainer {:ts-provider provider}))
+(defn new-gaussian-ad-trainer [provider profiles]
+  (map->GaussianAnomalyDetectionTrainer {:ts-provider provider
+                                         :profiles profiles}))

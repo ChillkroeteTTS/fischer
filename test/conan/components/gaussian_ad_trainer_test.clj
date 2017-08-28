@@ -41,26 +41,25 @@
                                           {:__name__ :metric4} [1 2 nil 4]
                                           {:__name__ :metric5} [1 2 3 nil]})))))
 
-(defn deatomized-trained-profile [rs] (into {} (map (fn [[k v]] [k @v]) rs)))
-(defn atomized-trained-profile [rs] (into {} (map (fn [[k v]] [k (atom v)]) rs)))
-
 (deftest trained-profile-test
   (testing "it delivers a trained anomaly detection model with metadata about which features where used for training"
     (let [training-data {{:__name__ "metric1"} [50.0 51.0 49.0]
-                         {:__name__ "metric2"} [4.0 5.0 3.0]}]
+                         {:__name__ "metric2"} [4.0 5.0 3.0]}
+          profile-config {:epsylon 0.5}]
       (with-redefs (ad/train (constantly [{:mu    50.0
                                            :sigma 0.6}
                                           {:mu    4.0
                                            :sigma 0.6}]))
         (is (= {:key->props     {{:__name__ "metric1"} {:idx          0
-                                                       :feature-vals [50.0 51.0 49.0]}
+                                                        :feature-vals [50.0 51.0 49.0]}
                                  {:__name__ "metric2"} {:idx          1
-                                                       :feature-vals [4.0 5.0 3.0]}}
+                                                        :feature-vals [4.0 5.0 3.0]}}
                 :mus-and-sigmas [{:mu    50.0
                                   :sigma 0.6}
                                  {:mu    4.0
-                                  :sigma 0.6}]}
-               (deatomized-trained-profile (#'gadt/trained-profile training-data))))))))
+                                  :sigma 0.6}]
+                :epsylon        0.5}
+               @(#'gadt/trained-profile profile-config training-data)))))))
 
 (defrecord TestNilProvider []
   p/TimeSeriesProvider
@@ -71,14 +70,17 @@
 
 (deftest GaussianAnomalyDetectionTrainer-test
   (let [train-rs-1 {:key->props     {{:__name__ "metric1"} {:idx 0 :feature-vals [50.0 51.0 49.0]}}
-                    :mus-and-sigmas [{:mu 50.0 :sigma 0.6}]}
+                    :mus-and-sigmas [{:mu 50.0 :sigma 0.6}]
+                    :epsylon        0.02}
         train-rs-2 {:key->props     {{:__name__ "metric1"} {:idx 0 :feature-vals [40.0 41.0 39.0]}}
-                    :mus-and-sigmas [{:mu 40.0 :sigma 0.6}]}]
+                    :mus-and-sigmas [{:mu 40.0 :sigma 0.6}]
+                    :epsylon        0.04}]
     (testing "it tests the startup of the component with 2 profiles"
-      (with-redefs [gadt/trained-profile #(get {:data1 (atomized-trained-profile train-rs-1)
-                                                :data2 (atomized-trained-profile train-rs-2)} %)]
-        (let [cp (cp/start (gadt/map->GaussianAnomalyDetectionTrainer {:ts-provider (->TestNilProvider)}))
-              trained-models (into {} (map (fn [[profile trained-profile]] [profile (deatomized-trained-profile trained-profile)]) (:trained-profiles cp)))]
+      (with-redefs [gadt/trained-profile (fn [profiles data] (get {:data1 train-rs-1
+                                                                   :data2 train-rs-2} data))]
+        (let [cp (cp/start (gadt/map->GaussianAnomalyDetectionTrainer {:profiles    {:profile1 0.02
+                                                                                     :profile2 0.04}
+                                                                       :ts-provider (->TestNilProvider)}))]
           (is (= {:profile1 train-rs-1
                   :profile2 train-rs-2}
-                 trained-models)))))))
+                 (:trained-profiles cp))))))))
