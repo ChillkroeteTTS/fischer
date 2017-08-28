@@ -14,7 +14,10 @@
   (training-data [_] {:profile1 {{:keymap1 1} [50.0 51.0]
                                  {:keymap2 2} [5.0 3.0]}}))
 
-(def profile-conf {:profile1 {:epsylon 0.02}})
+(def profile-conf {:profile1 {:epsylon 0.02
+                              :days-back nil
+                              :step-size nil
+                              :queries nil}})
 
 (deftest core-test
   (testing "it detects an anomaly"
