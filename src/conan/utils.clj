@@ -16,9 +16,6 @@
     (.write w (str "--- " profile ":\n"))
     (.write w (str score "\n"))))
 
-(defn prediction->console [profiles+prediction]
-  (prn profiles+prediction))
-
 (defn filtered-keyset [key->props key->feature]
   (select-keys key->feature (keys key->props)))
 

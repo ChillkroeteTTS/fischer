@@ -8,8 +8,7 @@ Thus it enables you to focus on further development of your application instead 
 
 Conan uses an anomaly detection algorithm based on a normal distribution fitted to historical data of your metrics.
 Currently only prometheus is configurable as data source, but more such as graphite will follow.
-Please mind that conan is still under heavy development, if you want to contribute feel free to tackle on of the tasks.
-The main topics to come are:
+Please mind that conan is still under heavy development, if you want to contribute feel free to tackle on of the issues.
 
 ## Usage
 The entire configuration is done from a file called `config.edn` located in the working directory.

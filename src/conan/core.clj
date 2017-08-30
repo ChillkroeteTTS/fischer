@@ -11,7 +11,8 @@
             [conan.utils :as utils]
             [conan.prometheus-provider :as prom]
             [outpace.config :refer [defconfig!]]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [conan.reporter.console-reporter :as cr]))
 (s/def ::profile (s/keys :req-un [::step-size ::days-back ::queries ::epsylon]))
 (s/def ::profiles (s/map-of (constantly true) ::profile))
 
@@ -20,13 +21,14 @@
 (defconfig! profiles)
 
 (def prom-provider (prom/->PrometheusProvider host port profiles))
+(def reporters [(cr/->ConsoleReporter)])
 
-(defn conan-system [conf provider]
+(defn conan-system [provider reporters]
   (if (s/valid? ::profiles profiles)
     (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider profiles) [])
-                   :detector (cp/using (d/new-detector provider) [:model-trainer]))
+                   :detector (cp/using (d/new-detector provider reporters) [:model-trainer]))
     (do (log/error "Your profile config is not in the expected format. Details:\n" (s/explain ::profiles profiles))
         (System/exit 1))))
 
 (defn -main [& argv]
-  (cp/start (conan-system {} prom-provider)))
+  (cp/start (conan-system prom-provider reporters)))

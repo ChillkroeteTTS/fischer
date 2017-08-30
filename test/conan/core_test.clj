@@ -5,7 +5,8 @@
             [de.otto.tesla.system :as system]
             [conan.utils :as utils]
             [overtone.at-at :as at]
-            [com.stuartsierra.component :as cp]))
+            [com.stuartsierra.component :as cp]
+            [conan.reporter.prediction-reporter :as r]))
 
 (defrecord TestProvider []
   p/TimeSeriesProvider
@@ -19,15 +20,20 @@
                               :step-size nil
                               :queries nil}})
 
+(defrecord TestReporter [pred-atom]
+  r/PredictionReporter
+  (report [_ profiles->predictions]
+    (dorun (map (fn [[profile pred]] (swap! pred-atom conj {profile pred}))
+                profiles->predictions))))
+
 (deftest core-test
   (testing "it detects an anomaly"
     (let [prediction-atom (atom [])
-          prediction->atom-fn (fn [pred] (swap! prediction-atom #(conj % pred)))]
-      (with-redefs [utils/prediction->console prediction->atom-fn
-                    at/every (fn [_ fn _ _ _] (fn))
+          test-reporter (->TestReporter prediction-atom)]
+      (with-redefs [at/every (fn [_ fn _ _ _] (fn))
                     at/stop identity
                     conan.core/profiles profile-conf]
-        (let [s (cp/start (c/conan-system {} (->TestProvider)))]
-          (is (= [[:profile1 false]]
+        (let [s (cp/start (c/conan-system (->TestProvider) [test-reporter]))]
+          (is (= [{:profile1 false}]
                  @prediction-atom))
           (cp/stop s))))))

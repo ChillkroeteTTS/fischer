@@ -6,7 +6,9 @@
             [conan.anomaly-detection :as ad]
             [conan.utils :as utils]
             [conan.time-series-provider :as p]
-            [outpace.config :refer [defconfig!]]))
+            [outpace.config :refer [defconfig!]]
+            [conan.reporter.prediction-reporter :as r]
+            [conan.reporter.console-reporter :as cr]))
 
 (defn- profile->features [ts-provider profile->key->props]
   (let [profiles->X-trans (p/prediction-data ts-provider)
@@ -25,7 +27,10 @@
   (let [prediction (fn [[profile score]] [profile (first (ad/predict [score] (get profile->epsylon profile)))])]
     (map prediction profile->score)))
 
-(defn detect [ts-provider score-logging-fn prediction-logging-fn trained-profiles]
+(defn report-predictions! [reporters profile->prediction]
+  (dorun (map #(r/report % profile->prediction) reporters)))
+
+(defn detect [ts-provider score-logging-fn reporters trained-profiles]
   (let [run-all (fn [fn coll] (doseq [e coll] (fn e)) coll)
         profile->mus-and-sigmas (into {} (map (fn [[k v]] [k (:mus-and-sigmas @v)]) trained-profiles))
         profile->key->props (into {} (map (fn [[k v]] [k (:key->props @v)]) trained-profiles))
@@ -35,7 +40,7 @@
          (profile->score profile->mus-and-sigmas)
          (#(run-all score-logging-fn %))
          (profile->prediction profile->epsylon)
-         (#(run-all prediction-logging-fn %)))))
+         (#(report-predictions! reporters %)))))
 
 (defn exc-logger [fn]
   (try
@@ -45,7 +50,7 @@
 
 (defconfig! repeat-in-ms)
 
-(defrecord Detector [ts-provider model-trainer scheduled-fn]
+(defrecord Detector [ts-provider reporters model-trainer scheduled-fn]
   cp/Lifecycle
   (start [self]
     (let [trained-profiles (get-in self [:model-trainer :trained-profiles])]
@@ -53,7 +58,7 @@
       (assoc self :scheduled-fn (at/every repeat-in-ms (partial exc-logger (partial detect
                                                                                     ts-provider
                                                                                     #(utils/score->file "./scores" %)
-                                                                                    utils/prediction->console
+                                                                                    reporters
                                                                                     trained-profiles))
                                           (at/mk-pool)
                                           :desc "Prom-Detector-Checker"))
@@ -64,5 +69,6 @@
     self))
 
 
-(defn new-detector [provider]
-  (map->Detector {:ts-provider provider}))
+(defn new-detector [provider reporters]
+  (map->Detector {:ts-provider provider
+                  :reporters reporters}))
