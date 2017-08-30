@@ -21,26 +21,26 @@
     (with-redefs [p/prediction-data (constantly nil)
                   ad/scores (constantly [0.1])
                   ad/predict (constantly [false])]
-      (let [score-atom (atom [])
-            prediction-atom (atom [])
+      (let [prediction-atom (atom [])
             test-reporter (->TestReporter prediction-atom)
-            sc-log-fn (fn [[profile score]] (swap! score-atom conj {profile score}))]
-        (d/detect nil sc-log-fn [test-reporter] trained-profiles)
-        (d/detect nil sc-log-fn [test-reporter] trained-profiles)
-        (is (= [{:profile1 0.1} {:profile1 0.1}] @score-atom))
-        (is (= [{:profile1 false} {:profile1 false}] @prediction-atom))))))
+            prediction {:profile1 {:p false :s 0.1 :e 0.2}}]
+        (d/detect nil [test-reporter] trained-profiles)
+        (d/detect nil [test-reporter] trained-profiles)
+        (is (= [prediction prediction] @prediction-atom))))))
+
+(def predictions {:p1 {:p true :s 0.1 :e 0.02}})
 
 (deftest report-predictions!-test
   (testing "it passes the predictions to one reporter"
     (let [pred-atom (atom [])]
-      (d/report-predictions! [(->TestReporter pred-atom)] {:p1 true})
-      (is (= [{:p1 true}]
+      (d/report-predictions! [(->TestReporter pred-atom)] predictions)
+      (is (= [predictions]
              @pred-atom))))
   (testing "it passes the predictions to two reporters"
     (let [pred-atom1 (atom [])
           pred-atom2 (atom [])]
-      (d/report-predictions! [(->TestReporter pred-atom1) (->TestReporter pred-atom2)] {:p1 true})
-      (is (= [{:p1 true}]
+      (d/report-predictions! [(->TestReporter pred-atom1) (->TestReporter pred-atom2)] predictions)
+      (is (= [predictions]
              @pred-atom1))
-      (is (= [{:p1 true}]
+      (is (= [predictions]
              @pred-atom2)))))

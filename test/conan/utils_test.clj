@@ -3,14 +3,6 @@
             [conan.utils :as utils]
             [clojure.java.io :as io]))
 
-
-(deftest scores->file-test
-  (let [file-path "test-resources/testscores"]
-    (utils/score->file file-path [:profile1 0.2])
-    (is (= "--- :profile1:\n0.2\n"
-           (slurp file-path)))
-    (io/delete-file file-path)))
-
 (deftest sorted-keyset-test
   (is (= [[{:key1 :key1} :val1]
           [{:key2 :key2} :val2]]

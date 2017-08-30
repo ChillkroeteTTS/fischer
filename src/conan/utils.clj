@@ -11,11 +11,6 @@
 (defn transpose [matrix]
   (apply map vector matrix))
 
-(defn score->file [file-path [profile score]]
-  (with-open [w (clojure.java.io/writer file-path :append true)]
-    (.write w (str "--- " profile ":\n"))
-    (.write w (str score "\n"))))
-
 (defn filtered-keyset [key->props key->feature]
   (select-keys key->feature (keys key->props)))
 

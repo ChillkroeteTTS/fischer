@@ -34,6 +34,8 @@
                     at/stop identity
                     conan.core/profiles profile-conf]
         (let [s (cp/start (c/conan-system (->TestProvider) [test-reporter]))]
-          (is (= [{:profile1 false}]
+          (is (= [{:profile1 {:e 0.02
+                              :p false
+                              :s 0.08615711720739454}}]
                  @prediction-atom))
           (cp/stop s))))))
