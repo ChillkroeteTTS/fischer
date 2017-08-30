@@ -12,4 +12,6 @@
                  [com.stuartsierra/component "0.3.2"]
                  [org.clojure-android/tools.logging "0.3.2"]
                  [overtone/at-at "1.2.0"]]
+  :profiles {:test {:jvm-opts ["-Dconfig.edn=test-config.edn"]}
+             :prod {:jvm-opts ["-Dconfig.edn=config.edn"]}}
   :aliases {"config" ["run" "-m" "outpace.config.generate"]})

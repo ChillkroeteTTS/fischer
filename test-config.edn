@@ -1,0 +1,18 @@
+{
+
+ ;; CONFIG ENTRIES:
+
+ conan.components.gaussian-ad-trainer/training-data-to-disk false
+
+ conan.core/debug                                           false
+
+ conan.core/host                                            ""
+
+ conan.core/port                                            0
+
+ conan.core/profiles                                        {}
+
+ conan.core/reporters                                       []
+
+ conan.components.detector/repeat-in-ms                     10000
+ }
