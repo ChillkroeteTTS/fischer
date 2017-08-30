@@ -1,4 +1,4 @@
-# Conan
+# Conan [![Build Status](https://travis-ci.org/ChillkroeteTTS/conan.svg?branch=master)](https://travis-ci.org/ChillkroeteTTS/conan)
 
 Proper application monitoring and especially alarming is crucial to quickly identify failures in your production applications.
 However in an environment with many different metrics and applications maintenance and setup becomes a tedious task.
