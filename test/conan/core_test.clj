@@ -10,21 +10,22 @@
 
 (defrecord TestProvider []
   p/TimeSeriesProvider
-  (prediction-data [_] {:profile1 {{:keymap1 1} [50.0]
-                                   {:keymap2 2} [4.0]}})
-  (training-data [_] {:profile1 {{:keymap1 1} [50.0 51.0]
-                                 {:keymap2 2} [5.0 3.0]}}))
+  (prediction-data [_] {:normal-profile    {{:keymap1 1} [50.0]
+                                            {:keymap2 2} [4.0]}
+                        :anomalous-profile {{:keymap1 1} [85.0]
+                                            {:keymap2 2} [15.0]}})
+  (training-data [_] {:normal-profile    {{:keymap1 1} [50.0 51.0]
+                                          {:keymap2 2} [5.0 3.0]}
+                      :anomalous-profile {{:keymap1 1} [50.0 51.0]
+                                          {:keymap2 2} [5.0 3.0]}}))
 
-(def profile-conf {:profile1 {:epsylon 0.02
-                              :days-back nil
-                              :step-size nil
-                              :queries nil}})
+(def std-conf {:epsylon 0.02 :days-back nil :step-size nil :queries nil})
+(def profile-conf {:normal-profile std-conf :anomalous-profile std-conf})
 
 (defrecord TestReporter [pred-atom]
   r/PredictionReporter
   (report [_ profiles->predictions]
-    (dorun (map (fn [[profile pred]] (swap! pred-atom conj {profile pred}))
-                profiles->predictions))))
+    (swap! pred-atom conj profiles->predictions)))
 
 (deftest core-test
   (testing "it detects an anomaly"
@@ -34,8 +35,11 @@
                     at/stop identity
                     conan.core/profiles profile-conf]
         (let [s (cp/start (c/conan-system (->TestProvider) [test-reporter]))]
-          (is (= [{:profile1 {:e 0.02
-                              :p false
-                              :s 0.08615711720739454}}]
+          (is (= [{:normal-profile    {:e 0.02
+                                       :p false
+                                       :s 0.08615711720739454}
+                   :anomalous-profile {:e 0.02
+                                       :p true
+                                       :s 0.0}}]
                  @prediction-atom))
           (cp/stop s))))))
