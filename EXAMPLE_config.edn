@@ -20,6 +20,9 @@
                                                                              :days-back 7
                                                                              :queries   ["sum(rate(http_duration_in_s_count{job='my-second-job', stage='live'}[1m]))"]}}
 
+ ;; List of reporters used to notify about predictions
+ conan.core/reporters                                       [{:type :file :file-path "./predictions"} {:type :console}]
+
  ;; Epsylon. If calculated anomaly score is BELOW this value, conan will detect it as anomalous.
  conan.components.detector/epsylon                          0.02
 

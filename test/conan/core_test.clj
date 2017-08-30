@@ -33,8 +33,8 @@
           test-reporter (->TestReporter prediction-atom)]
       (with-redefs [at/every (fn [_ fn _ _ _] (fn))
                     at/stop identity
-                    conan.core/profiles profile-conf]
-        (let [s (cp/start (c/conan-system (->TestProvider) [test-reporter]))]
+                    c/reporters (constantly [test-reporter])]
+        (let [s (cp/start (c/conan-system (->TestProvider) profile-conf []))]
           (is (= [{:normal-profile    {:e 0.02
                                        :p false
                                        :s 0.08615711720739454}
@@ -43,3 +43,15 @@
                                        :s 0.0}}]
                  @prediction-atom))
           (cp/stop s))))))
+
+(deftest reporters-test
+  (testing "it creates a file reporter"
+    (is (= [conan.reporter.file_reporter.FileReporter]
+           (map type (c/reporters [{:type :file :file-path nil}])))))
+  (testing "it creates a console reporter"
+    (is (= [conan.reporter.console_reporter.ConsoleReporter]
+           (map type (c/reporters [{:type :console}])))))
+  (testing "it creates multiple reporter"
+    (is (= [conan.reporter.file_reporter.FileReporter
+           conan.reporter.console_reporter.ConsoleReporter]
+           (map type (c/reporters [{:type :file :file-path nil} {:type :console}]))))))
