@@ -1,6 +1,5 @@
 (ns conan.components.detector
   (:require [clojure.tools.logging :as log]
-            [de.otto.tesla.stateful.scheduler :as sched]
             [overtone.at-at :as at]
             [com.stuartsierra.component :as cp]
             [conan.anomaly-detection :as ad]

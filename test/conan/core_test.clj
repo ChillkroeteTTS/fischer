@@ -2,7 +2,6 @@
   (:require [conan.core :as c]
             [clojure.test :refer :all]
             [conan.time-series-provider :as p]
-            [de.otto.tesla.system :as system]
             [conan.utils :as utils]
             [overtone.at-at :as at]
             [com.stuartsierra.component :as cp]

@@ -8,5 +8,8 @@
                  [clj-http "3.6.1"]
                  [clojure-future-spec "1.9.0-alpha17"]
                  [org.clojure/data.json "0.2.6"]
-                 [com.outpace/config "0.10.0"]]
+                 [com.outpace/config "0.10.0"]
+                 [com.stuartsierra/component "0.3.2"]
+                 [org.clojure-android/tools.logging "0.3.2"]
+                 [overtone/at-at "1.2.0"]]
   :aliases {"config" ["run" "-m" "outpace.config.generate"]})
