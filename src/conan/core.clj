@@ -25,8 +25,8 @@
   (if (s/valid? ::profiles profiles)
     (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider profiles) [])
                    :detector (cp/using (d/new-detector provider) [:model-trainer]))
-    (log/error "Your profile config is not in the expected format. Details:\n" (s/explain ::profiles profiles))
-    (System/exit 1)))
+    (do (log/error "Your profile config is not in the expected format. Details:\n" (s/explain ::profiles profiles))
+        (System/exit 1))))
 
 (defn -main [& argv]
   (cp/start (conan-system {} prom-provider)))

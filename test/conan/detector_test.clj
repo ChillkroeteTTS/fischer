@@ -8,7 +8,6 @@
 (def trained-profiles {:profile1 (atom {:key->props     {}
                                         :mus-and-sigmas [{:mu 101/2, :sigma 0.25} {:mu 4, :sigma 1.0}]
                                         :epsylon        0.2})})
-;; TODO: EPSYLON should be part of profile configuration
 
 (deftest detect-test
   (testing "it detects anomalies on each call"

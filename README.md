@@ -10,11 +10,6 @@ Conan uses an anomaly detection algorithm based on a normal distribution fitted 
 Currently only prometheus is configurable as data source, but more such as graphite will follow.
 Please mind that conan is still under heavy development, if you want to contribute feel free to tackle on of the tasks.
 The main topics to come are:
-- Use an efficient math library for the anomaly detection algorithm (such as neanderthal)
-- Implement a reporter system to send alarms (http-call, mail etc.)
-- Implement a graphite provider
-- Figure out a good value for epsylon (almost no false positives, maybe different alarm modes?)
-- Train model in a configurable interval
 
 ## Usage
 The entire configuration is done from a file called `config.edn` located in the working directory.
