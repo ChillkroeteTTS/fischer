@@ -1,9 +1,5 @@
 (defproject conan "0.1.0-SNAPSHOT"
   :description "A clojure anomaly detection service"
-  :repositories [["central" {:url "http://artifactory.lhotse.ov.otto.de/artifactory/maven-central-remote"}]
-                 ["clojars" {:url "http://artifactory.lhotse.ov.otto.de/artifactory/clojars-releases-remote"}]
-                 ["nexus-releases" {:url "http://artifactory.lhotse.ov.otto.de/artifactory/nexus-releases-remote"}]
-                 ["releases" {:url "http://artifactory.lhotse.ov.otto.de/artifactory/maven-tesla-releases-local"}]]
   :main conan.core
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
