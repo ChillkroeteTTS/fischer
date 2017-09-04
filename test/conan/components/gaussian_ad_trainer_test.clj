@@ -3,7 +3,8 @@
             [conan.components.gaussian-ad-trainer :as gadt]
             [conan.time-series-provider :as p]
             [conan.anomaly-detection :as ad]
-            [com.stuartsierra.component :as cp]))
+            [com.stuartsierra.component :as cp]
+            [overtone.at-at :as at]))
 
 
 (deftest build-index-map-test
@@ -75,9 +76,10 @@
         train-rs-2 {:key->props     {{:__name__ "metric1"} {:idx 0 :feature-vals [40.0 41.0 39.0]}}
                     :mus-and-sigmas [{:mu 40.0 :sigma 0.6}]
                     :epsylon        0.04}]
-    (testing "it tests the startup of the component with 2 profiles"
-      (with-redefs [gadt/trained-profile (fn [profiles data] (get {:data1 train-rs-1
-                                                                   :data2 train-rs-2} data))]
+    (testing "it tests if the training data is used to train and save an ad model"
+      (with-redefs [at/every (fn [_ fn _ _ _] (fn))
+                    gadt/trained-profile (fn [_ data] (get {:data1 train-rs-1
+                                                            :data2 train-rs-2} data))]
         (let [cp (cp/start (gadt/map->GaussianAnomalyDetectionTrainer {:profiles    {:profile1 0.02
                                                                                      :profile2 0.04}
                                                                        :ts-provider (->TestNilProvider)}))]

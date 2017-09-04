@@ -5,7 +5,9 @@
             [conan.utils :as utils]
             [clojure.string :as s]
             [outpace.config :refer [defconfig!]]
-            [conan.time-series-provider :as p]))
+            [conan.time-series-provider :as p]
+            [overtone.at-at :as at]
+            [conan.utils :as u]))
 
 (defconfig! training-data-to-disk)
 
@@ -62,17 +64,26 @@
            :mus-and-sigmas mus+sigmas
            :epsylon        (:epsylon config)})))
 
+(defn- train-models [ts-provider profiles models-atom]
+  (let [profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile (get profiles profile) X-trans)])
+        trained-profiles (->> (p/training-data ts-provider)
+                              (map profiles+trained-profiles)
+                              (into {}))]
+    (reset! models-atom trained-profiles)))
+
+(defconfig! model-training-interval-in-ms)
+
 (defrecord GaussianAnomalyDetectionTrainer [ts-provider profiles key->props mus-and-sigmas]
   cp/Lifecycle
   (start [self]
-    (let [profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile (get profiles profile) X-trans)])
-          trained-profiles (->> ts-provider
-                                (p/training-data)
-                                (map profiles+trained-profiles)
-                                (into {}))]
-      (log/info "Register Gaussian anomaly detection trainer")
+    (let [models-atom (atom {})]
+      (log/info "Register Gaussian anomaly detection model trainer")
+      (at/every model-training-interval-in-ms
+                (partial u/exc-logger #(train-models ts-provider profiles models-atom))
+                (at/mk-pool)
+                :desc "Gaussian anomaly detection model trainer")
       (assoc self
-        :trained-profiles trained-profiles)))
+        :trained-profiles @models-atom)))
   (stop [self]
     (log/info "Stopping Gaussian anomaly detection trainer")
     self))
@@ -80,4 +91,4 @@
 
 (defn new-gaussian-ad-trainer [provider profiles]
   (map->GaussianAnomalyDetectionTrainer {:ts-provider provider
-                                         :profiles profiles}))
+                                         :profiles    profiles}))

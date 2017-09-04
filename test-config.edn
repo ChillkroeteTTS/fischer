@@ -2,6 +2,8 @@
 
  ;; CONFIG ENTRIES:
 
+ conan.components.gaussian-ad-trainer/model-training-interval-in-ms 1000
+
  conan.components.gaussian-ad-trainer/training-data-to-disk false
 
  conan.core/debug                                           false

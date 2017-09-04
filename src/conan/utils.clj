@@ -1,6 +1,7 @@
 (ns conan.utils
   (:require [clojure.spec.alpha :as s]
-            [conan.anomaly-detection :as ad]))
+            [conan.anomaly-detection :as ad]
+            [clojure.tools.logging :as log]))
 
 (defmacro timed [& body]
   `(let [start-time# (System/currentTimeMillis)
@@ -24,3 +25,9 @@
        (sorted-kv-list key->props)
        (map second)
        (transpose)))
+
+(defn exc-logger [fn]
+  (try
+    (fn)
+    (catch Exception e
+      (log/error e))))

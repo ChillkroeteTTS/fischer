@@ -7,7 +7,8 @@
             [conan.time-series-provider :as p]
             [outpace.config :refer [defconfig!]]
             [conan.reporter.prediction-reporter :as r]
-            [conan.reporter.console-reporter :as cr]))
+            [conan.reporter.console-reporter :as cr]
+            [conan.utils :as u]))
 
 (defn- profile->features [ts-provider profile->key->props]
   (let [profiles->X-trans (p/prediction-data ts-provider)
@@ -39,12 +40,6 @@
     ;;(log/info "Start detection with " @mus+sigmas-atom)
     (report-predictions! reporters (into {} (map (fn [[profile s]] [profile {:e (get profile->epsylon profile) :s s :p (get profile->prediction profile)}]) profile->score)))))
 
-(defn exc-logger [fn]
-  (try
-    (fn)
-    (catch Exception e
-      (log/error e))))
-
 (defconfig! repeat-in-ms)
 
 (defrecord Detector [ts-provider reporters model-trainer scheduled-fn]
@@ -52,10 +47,10 @@
   (start [self]
     (let [trained-profiles (get-in self [:model-trainer :trained-profiles])]
       (log/info "Register Prom Detector")
-      (assoc self :scheduled-fn (at/every repeat-in-ms (partial exc-logger (partial detect
-                                                                                    ts-provider
-                                                                                    reporters
-                                                                                    trained-profiles))
+      (assoc self :scheduled-fn (at/every repeat-in-ms (partial u/exc-logger (partial detect
+                                                                                      ts-provider
+                                                                                      reporters
+                                                                                      trained-profiles))
                                           (at/mk-pool)
                                           :desc "Prom-Detector-Checker"))
       ))
