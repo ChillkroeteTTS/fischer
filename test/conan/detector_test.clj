@@ -4,7 +4,8 @@
             [clojure.java.io :as io]
             [conan.anomaly-detection :as ad]
             [conan.time-series-provider :as p]
-            [conan.reporter.prediction-reporter :as r]))
+            [conan.reporter.prediction-reporter :as r]
+            [conan.model :as m]))
 
 (defrecord TestReporter [pred-atom]
   r/PredictionReporter
@@ -12,20 +13,20 @@
     (dorun (map (fn [[profile pred]] (swap! pred-atom conj {profile pred}))
                 profiles->predictions))))
 
-(def trained-profiles {:profile1 (atom {:key->props     {}
-                                        :mus-and-sigmas [{:mu 101/2, :sigma 0.25} {:mu 4, :sigma 1.0}]
-                                        :epsylon        0.2})})
+(def trained-profiles {:profile1 (atom {:key->props {}
+                                        :models     [{:mu 101/2, :sigma 0.25} {:mu 4, :sigma 1.0}]
+                                        :epsylon    0.2})})
 
 (deftest detect-test
   (testing "it detects anomalies on each call"
     (with-redefs [p/prediction-data (constantly nil)
-                  ad/scores (constantly [0.1])
-                  ad/predict (constantly [false])]
+                  m/scores (constantly [0.1])
+                  m/predict (constantly [false])]
       (let [prediction-atom (atom [])
             test-reporter (->TestReporter prediction-atom)
             prediction {:profile1 {:p false :s 0.1 :e 0.2}}]
-        (d/detect nil [test-reporter] trained-profiles)
-        (d/detect nil [test-reporter] trained-profiles)
+        (d/detect nil nil [test-reporter] trained-profiles)
+        (d/detect nil nil [test-reporter] trained-profiles)
         (is (= [prediction prediction] @prediction-atom))))))
 
 (def predictions {:p1 {:p true :s 0.1 :e 0.02}})

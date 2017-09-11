@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [conan.components.gaussian-ad-trainer :as gadt]
             [conan.time-series-provider :as p]
+            [conan.model :as m]
             [conan.anomaly-detection :as ad]
             [com.stuartsierra.component :as cp]
             [overtone.at-at :as at]))
@@ -47,42 +48,50 @@
     (let [training-data {{:__name__ "metric1"} [50.0 51.0 49.0]
                          {:__name__ "metric2"} [4.0 5.0 3.0]}
           profile-config {:epsylon 0.5}]
-      (with-redefs (ad/train (constantly [{:mu    50.0
-                                           :sigma 0.6}
-                                          {:mu    4.0
-                                           :sigma 0.6}]))
-        (is (= {:key->props     {{:__name__ "metric1"} {:idx          0
-                                                        :feature-vals [50.0 51.0 49.0]}
-                                 {:__name__ "metric2"} {:idx          1
-                                                        :feature-vals [4.0 5.0 3.0]}}
-                :mus-and-sigmas [{:mu    50.0
-                                  :sigma 0.6}
-                                 {:mu    4.0
-                                  :sigma 0.6}]
-                :epsylon        0.5}
-               @(#'gadt/trained-profile profile-config training-data)))))))
+      (with-redefs [m/train (constantly [{:mu    50.0
+                                          :sigma 0.6}
+                                         {:mu    4.0
+                                          :sigma 0.6}])]
+        (is (= {:key->props {{:__name__ "metric1"} {:idx          0
+                                                    :feature-vals [50.0 51.0 49.0]}
+                             {:__name__ "metric2"} {:idx          1
+                                                    :feature-vals [4.0 5.0 3.0]}}
+                :models     [{:mu    50.0
+                              :sigma 0.6}
+                             {:mu    4.0
+                              :sigma 0.6}]
+                :epsylon    0.5}
+               @(#'gadt/trained-profile nil profile-config training-data)))))))
 
+(def train-rs-1 [{:mu 50.0 :sigma 0.6}])
+(def train-rs-2 [{:mu 40.0 :sigma 0.6}])
+(def expected-rs {:profile1 {:key->props {{:__name__ "metric1"} {:idx 0, :feature-vals [1]}}
+                             :epsylon    0.02
+                             :models     train-rs-1}
+                  :profile2 {:key->props {{:__name__ "metric2"} {:idx 0, :feature-vals [2]}}
+                             :epsylon    0.04
+                             :models     train-rs-2}})
+
+(def dummy-data {:profile1 {{:__name__ "metric1"} [1]} :profile2 {{:__name__ "metric2"} [2]}})
 (defrecord TestNilProvider []
   p/TimeSeriesProvider
-  (prediction-data [_] {:profile1 :data1
-                        :profile2 :data2})
-  (training-data [_] {:profile1 :data1
-                      :profile2 :data2}))
+  (prediction-data [_] dummy-data)
+  (training-data [_] dummy-data))
 
+(defrecord TestModel []
+  m/Model
+  (train [_ data]
+    (get {1 train-rs-1 2 train-rs-2} (first (first data))))
+  (scores [_ _ _] nil)
+  (predict [_ _ _] nil))
+
+(defn deatomized-trained-profile [rs] (into {} (map (fn [[k v]] [k @v]) rs)))
 (deftest GaussianAnomalyDetectionTrainer-test
-  (let [train-rs-1 {:key->props     {{:__name__ "metric1"} {:idx 0 :feature-vals [50.0 51.0 49.0]}}
-                    :mus-and-sigmas [{:mu 50.0 :sigma 0.6}]
-                    :epsylon        0.02}
-        train-rs-2 {:key->props     {{:__name__ "metric1"} {:idx 0 :feature-vals [40.0 41.0 39.0]}}
-                    :mus-and-sigmas [{:mu 40.0 :sigma 0.6}]
-                    :epsylon        0.04}]
-    (testing "it tests if the training data is used to train and save an ad model"
-      (with-redefs [at/every (fn [_ fn _ _ _] (fn))
-                    gadt/trained-profile (fn [_ data] (get {:data1 train-rs-1
-                                                            :data2 train-rs-2} data))]
-        (let [cp (cp/start (gadt/map->GaussianAnomalyDetectionTrainer {:profiles    {:profile1 0.02
-                                                                                     :profile2 0.04}
-                                                                       :ts-provider (->TestNilProvider)}))]
-          (is (= {:profile1 train-rs-1
-                  :profile2 train-rs-2}
-                 (:trained-profiles cp))))))))
+  (testing "it tests if the training data is used to train and save an ad model"
+    (with-redefs [at/every (fn [_ fn _ _ _] (fn))]
+      (let [cp (cp/start (gadt/map->GaussianAnomalyDetectionTrainer {:profiles    {:profile1 {:epsylon 0.02}
+                                                                                   :profile2 {:epsylon 0.04}}
+                                                                     :ts-provider (->TestNilProvider)
+                                                                     :model       (->TestModel)}))]
+        (is (= expected-rs
+               (deatomized-trained-profile (:trained-profiles cp))))))))

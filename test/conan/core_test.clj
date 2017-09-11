@@ -5,7 +5,8 @@
             [conan.utils :as utils]
             [overtone.at-at :as at]
             [com.stuartsierra.component :as cp]
-            [conan.reporter.prediction-reporter :as r]))
+            [conan.reporter.prediction-reporter :as r]
+            [conan.models.GaussianModel :as gauss]))
 
 (defrecord TestProvider []
   p/TimeSeriesProvider
@@ -33,7 +34,7 @@
       (with-redefs [at/every (fn [_ fn _ _ _] (fn))
                     at/stop identity
                     c/reporters (constantly [test-reporter])]
-        (let [s (cp/start (c/conan-system (->TestProvider) profile-conf []))]
+        (let [s (cp/start (c/conan-system (->TestProvider) (gauss/->GaussianModel) profile-conf []))]
           (is (= [{:normal-profile    {:e 0.02
                                        :p false
                                        :s 0.08615711720739454}

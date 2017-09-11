@@ -5,8 +5,7 @@
             [clj-time.core :as t]
             [com.stuartsierra.component :as cp]
             [clojure.tools.logging :as log]
-            [overtone.at-at :as at]
-            [conan.utils :as utils]
+            [conan.models.GaussianModel :as gauss]
             [conan.prometheus-provider :as prom]
             [outpace.config :refer [defconfig!]]
             [clojure.spec.alpha :as s]
@@ -23,6 +22,7 @@
 (defconfig! reporters)
 
 (def prom-provider (prom/->PrometheusProvider host port profiles))
+(def gaussian-model (gauss/->GaussianModel))
 (def reporters [(cr/->ConsoleReporter)])
 
 (defn validate-config [profiles reporters]
@@ -38,11 +38,11 @@
            :console (cr/->ConsoleReporter)))
        reporter-confs))
 
-(defn conan-system [provider profiles reporters-configs]
+(defn conan-system [provider gaussian-model profiles reporters-configs]
   (let [validation (validate-config profiles reporters-configs)]
     (if (:valid? validation)
-      (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider profiles) [])
-                     :detector (cp/using (d/new-detector provider (reporters reporters-configs)) [:model-trainer]))
+      (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider gaussian-model profiles) [])
+                     :detector (cp/using (d/new-detector provider gaussian-model (reporters reporters-configs)) [:model-trainer]))
       (do
         (log/error "Your config is not in the expected format. Details:\n" (:explanation validation))
         (when (not debug) (System/exit 1))))))
