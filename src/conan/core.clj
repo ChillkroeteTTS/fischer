@@ -21,10 +21,6 @@
 (defconfig! profiles)
 (defconfig! reporters)
 
-(def prom-provider (prom/->PrometheusProvider host port profiles))
-(def gaussian-model (gauss/->GaussianModel))
-(def reporters [(cr/->ConsoleReporter)])
-
 (defn validate-config [profiles reporters]
   (let [valid? (and (s/valid? ::profiles profiles) (s/valid? ::reporters reporters))]
     {:valid?      valid?
@@ -38,14 +34,18 @@
            :console (cr/->ConsoleReporter)))
        reporter-confs))
 
-(defn conan-system [provider gaussian-model profiles reporters-configs]
+(defn conan-system [provider model profiles reporters-configs]
   (let [validation (validate-config profiles reporters-configs)]
     (if (:valid? validation)
-      (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider gaussian-model profiles) [])
-                     :detector (cp/using (d/new-detector provider gaussian-model (reporters reporters-configs)) [:model-trainer]))
+      (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider model profiles) [])
+                     :detector (cp/using (d/new-detector provider model (reporters reporters-configs)) [:model-trainer]))
       (do
         (log/error "Your config is not in the expected format. Details:\n" (:explanation validation))
         (when (not debug) (System/exit 1))))))
 
+(def prom-provider (prom/->PrometheusProvider host port profiles))
+(def gaussian-model (gauss/->GaussianModel))
+(def reporters [(cr/->ConsoleReporter)])
+
 (defn -main [& argv]
-  (cp/start (conan-system prom-provider profiles reporters)))
+  (cp/start (conan-system prom-provider gaussian-model profiles reporters)))
