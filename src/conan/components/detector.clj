@@ -14,13 +14,13 @@
 (defn- profile->features [ts-provider profile->key->props]
   (let [profiles->X-trans (p/prediction-data ts-provider)
         features (fn [[profile key->props]]
-                   [profile (utils/extract-bare-features (get profiles->X-trans profile)
-                                                         key->props)])]
+                   [profile (first (utils/extract-bare-features (get profiles->X-trans profile)
+                                                                key->props))])]
     (map features profile->key->props)))
 
 (defn profile->score [model profile->models profile->features]
   (let [score (fn [[profile features]]
-                [profile (first (m/scores model features (get profile->models profile)))])]
+                [profile (first (m/scores model [features] (get profile->models profile)))])]
     (map score
          profile->features)))
 
@@ -31,14 +31,14 @@
 (defn report-predictions! [reporters profile->prediction]
   (dorun (map #(r/report % profile->prediction) reporters)))
 
-(defn detect [ts-provider model reporters trained-profiles]
-  (let [profile->models (into {} (map (fn [[k v]] [k (:models @v)]) trained-profiles))
-        profile->key->props (into {} (map (fn [[k v]] [k (:key->props @v)]) trained-profiles))
-        profile->epsylon (into {} (map (fn [[k v]] [k (:epsylon @v)]) trained-profiles))
+(defn detect [ts-provider model reporters trained-profiles-atom]
+  (let [sly-profile-map (fn [key] (reduce-kv #(assoc %1 %2 (get %3 key)) {} @trained-profiles-atom))
+        profile->models (sly-profile-map :models)
+        profile->key->props (sly-profile-map :key->props)
+        profile->epsylon (sly-profile-map :epsylon)
         profile->score (->> (profile->features ts-provider profile->key->props)
                             (profile->score model profile->models))
         profile->prediction (profile->prediction model profile->epsylon profile->score)]
-    ;;(log/info "Start detection with " @mus+sigmas-atom)
     (report-predictions! reporters (into {} (map (fn [[profile s]] [profile {:e (get profile->epsylon profile) :s s :p (get profile->prediction profile)}]) profile->score)))))
 
 (defconfig! repeat-in-ms)
@@ -64,5 +64,5 @@
 
 (defn new-detector [provider model reporters]
   (map->Detector {:ts-provider provider
-                  :model model
-                  :reporters reporters}))
+                  :model       model
+                  :reporters   reporters}))

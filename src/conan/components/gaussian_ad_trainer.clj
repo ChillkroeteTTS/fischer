@@ -60,9 +60,9 @@
                        (utils/extract-bare-features key->props)
                        (write-to-plate!)
                        (#(m/train model %)))]
-    (atom {:key->props key->props
-           :models     models
-           :epsylon    (:epsylon config)})))
+    {:key->props key->props
+     :models     models
+     :epsylon    (:epsylon config)}))
 
 (defn- train-models [ts-provider model profiles models-atom]
   (let [profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile model (get profiles profile) X-trans)])
@@ -83,7 +83,7 @@
                 (at/mk-pool)
                 :desc "Gaussian anomaly detection model trainer")
       (assoc self
-        :trained-profiles @models-atom)))
+        :trained-profiles models-atom)))
   (stop [self]
     (log/info "Stopping Gaussian anomaly detection trainer")
     self))

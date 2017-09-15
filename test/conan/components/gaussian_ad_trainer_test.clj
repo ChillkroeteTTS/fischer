@@ -61,7 +61,7 @@
                              {:mu    4.0
                               :sigma 0.6}]
                 :epsylon    0.5}
-               @(#'gadt/trained-profile nil profile-config training-data)))))))
+               (#'gadt/trained-profile nil profile-config training-data)))))))
 
 (def train-rs-1 [{:mu 50.0 :sigma 0.6}])
 (def train-rs-2 [{:mu 40.0 :sigma 0.6}])
@@ -85,7 +85,6 @@
   (scores [_ _ _] nil)
   (predict [_ _ _] nil))
 
-(defn deatomized-trained-profile [rs] (into {} (map (fn [[k v]] [k @v]) rs)))
 (deftest GaussianAnomalyDetectionTrainer-test
   (testing "it tests if the training data is used to train and save an ad model"
     (with-redefs [at/every (fn [_ fn _ _ _] (fn))]
@@ -94,4 +93,4 @@
                                                                      :ts-provider (->TestNilProvider)
                                                                      :model       (->TestModel)}))]
         (is (= expected-rs
-               (deatomized-trained-profile (:trained-profiles cp))))))))
+               @(:trained-profiles cp)))))))
