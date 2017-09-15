@@ -2,33 +2,32 @@
 
  ;; CONFIG ENTRIES:
  ;; time in milliseconds until the model is trained anew
- conan.components.gaussian-ad-trainer/model-training-interval 1000
+ conan.components.gaussian-ad-trainer/model-training-interval-in-ms 1000
 
  ;; if true, data used for training is saved to disk for further analysis
- conan.components.gaussian-ad-trainer/training-data-to-disk   false
+ conan.components.gaussian-ad-trainer/training-data-to-disk         false
 
  ;; Prometheus host address
- conan.core/host                                              "http://my-prometheus-ho.st"
+ conan.core/host                                                    "http://my-prometheus-ho.st"
 
  ;; Prometheus port
- conan.core/port                                              8080
+ conan.core/port                                                    8080
 
  ;; Prometheus query config.
  ;; Different profiles containing an arbitrary number of queries.
  ;; Each profile is checked independently for anomalies.
- conan.core/profiles                                          {:my-job        {:step-size "10m"
-                                                                               :days-back 7
-                                                                               :queries   ["sum(rate(http_duration_in_s_count{job='my-job', stage='live'}[1m]))"]}
-                                                               :my-second-job {:step-size "10m"
-                                                                               :days-back 7
-                                                                               :queries   ["sum(rate(http_duration_in_s_count{job='my-second-job', stage='live'}[1m]))"]}}
+ conan.core/profiles                                                {:my-job        {:step-size "10m"
+                                                                                     :days-back 7
+                                                                                     :queries   ["sum(rate(http_duration_in_s_count{job='my-job', stage='live'}[1m]))"]
+                                                                                     :epsylon   0.02}
+                                                                     :my-second-job {:step-size "10m"
+                                                                                     :days-back 7
+                                                                                     :queries   ["sum(rate(http_duration_in_s_count{job='my-second-job', stage='live'}[1m]))"]
+                                                                                     :epsylon   0.02}}
 
  ;; List of reporters used to notify about predictions
- conan.core/reporters                                         [{:type :file :file-path "./predictions"} {:type :console}]
-
- ;; Epsylon. If calculated anomaly score is BELOW this value, conan will detect it as anomalous.
- conan.components.detector/epsylon                            0.02
+ conan.core/reporters-configs                                       [{:type :file :file-path "./predictions"} {:type :console}]
 
  ;; Interval in ms conan checks for anomalies
- conan.components.detector/repeat-in-ms                       10000
+ conan.components.detector/repeat-in-ms                             10000
  }

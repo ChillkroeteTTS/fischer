@@ -7,7 +7,7 @@
             [clojure.tools.logging :as log]
             [conan.models.GaussianModel :as gauss]
             [conan.prometheus-provider :as prom]
-            [outpace.config :refer [defconfig!]]
+            [outpace.config :refer [defconfig! defconfig]]
             [clojure.spec.alpha :as s]
             [conan.reporter.console-reporter :as cr]
             [conan.reporter.file-reporter :as fr]))
@@ -15,11 +15,11 @@
 (s/def ::profiles (s/map-of (constantly true) ::profile))
 (s/def ::reporters (s/coll-of (s/keys :req-un [::type])))
 
-(defconfig! debug)
+(defconfig debug false)
 (defconfig! host)
 (defconfig! port)
 (defconfig! profiles)
-(defconfig! reporters)
+(defconfig! reporters-configs)
 
 (defn validate-config [profiles reporters]
   (let [valid? (and (s/valid? ::profiles profiles) (s/valid? ::reporters reporters))]
@@ -45,7 +45,6 @@
 
 (def prom-provider (prom/->PrometheusProvider host port profiles))
 (def gaussian-model (gauss/->GaussianModel))
-(def reporters [(cr/->ConsoleReporter)])
 
 (defn -main [& argv]
-  (cp/start (conan-system prom-provider gaussian-model profiles reporters)))
+  (cp/start (conan-system prom-provider gaussian-model profiles reporters-configs)))
