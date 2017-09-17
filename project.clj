@@ -11,7 +11,13 @@
                  [com.outpace/config "0.10.0"]
                  [com.stuartsierra/component "0.3.2"]
                  [org.clojure-android/tools.logging "0.3.2"]
-                 [overtone/at-at "1.2.0"]]
+                 [overtone/at-at "1.2.0"]
+                 [ring/ring-core "1.6.2"]
+                 [ring/ring-jetty-adapter "1.6.2"]
+                 [compojure "1.6.0"]
+                 [clj-http "3.7.0"]
+                 [ring/ring-json "0.4.0"]
+                 [ring/ring-mock "0.3.1"]]
   :profiles {:test {:jvm-opts ["-Dconfig.edn=test-config.edn"]}
              :prod {:jvm-opts ["-Dconfig.edn=config.edn"]}}
   :aliases {"config" ["run" "-m" "outpace.config.generate"]})

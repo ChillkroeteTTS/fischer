@@ -12,6 +12,10 @@
 
  conan.core/port                                                    0
 
+ conan.components.frontend/frontend-host                            "127.0.0.1"
+
+ conan.components.frontend/frontend-port                            8080
+
  conan.core/profiles                                                {}
 
  conan.core/reporters-configs                                       []

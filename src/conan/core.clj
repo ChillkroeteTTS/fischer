@@ -7,6 +7,7 @@
             [clojure.tools.logging :as log]
             [conan.models.GaussianModel :as gauss]
             [conan.prometheus-provider :as prom]
+            [conan.components.frontend :as fe]
             [outpace.config :refer [defconfig! defconfig]]
             [clojure.spec.alpha :as s]
             [conan.reporter.console-reporter :as cr]
@@ -38,7 +39,8 @@
   (let [validation (validate-config profiles reporters-configs)]
     (if (:valid? validation)
       (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider model profiles) [])
-                     :detector (cp/using (d/new-detector provider model (reporters reporters-configs)) [:model-trainer]))
+                     :detector (cp/using (d/new-detector provider model (reporters reporters-configs)) [:model-trainer])
+                     :frontend (cp/using (fe/new-frontend) [:model-trainer]))
       (do
         (log/error "Your config is not in the expected format. Details:\n" (:explanation validation))
         (when (not debug) (System/exit 1))))))

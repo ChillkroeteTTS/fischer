@@ -13,6 +13,12 @@
  ;; Prometheus port
  conan.core/port                                                    8080
 
+ ;; Frontend/API host
+ conan.components.frontend/frontend-host                            "127.0.0.1"
+
+ ;; Fronthend/API port
+ conan.components.frontend/frontend-port                            8080
+
  ;; Prometheus query config.
  ;; Different profiles containing an arbitrary number of queries.
  ;; Each profile is checked independently for anomalies.
