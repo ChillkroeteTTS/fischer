@@ -4,12 +4,15 @@
             [clj-http.client :as client]
             [com.stuartsierra.component :as cp]
             [ring.mock.request :as mock]
-            [clojure.data.json :as json])
+            [clojure.data.json :as json]
+            [compojure.core :as cpj]
+            [ring.util.response :as resp])
   (:import (java.net ConnectException)))
 
 (deftest test-frontent-component
   (testing "it starts and stops of the server"
-    (let [fe-cmp (cp/start (fe/->Frontend {}))
+    (let [handler (atom [(cpj/GET "/" rsp (resp/response ""))])
+          fe-cmp (cp/start (fe/->Frontend handler {}))
           server (:server fe-cmp)]
       (try
         (is (= 200
@@ -23,6 +26,6 @@
   (testing "it returns a json containing infos about the trained models"
     (let [model-data {:profile1 {:my "model-data"}}
           model-trainer {:trained-profiles (atom model-data)}
-          response ((fe/routes model-trainer) (mock/request :get "/"))]
+          response ((fe/merged-routes [] model-trainer) (mock/request :get "/models"))]
       (is (= model-data
              (json/read-str (:body response) :key-fn keyword))))))

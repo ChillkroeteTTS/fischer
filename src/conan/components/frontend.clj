@@ -14,16 +14,15 @@
 (defn model-trainer-info [model-trainer req]
   (resp/response @(:trained-profiles model-trainer)))
 
-(defn routes [model-trainer]
-  (->> (cpj/routes
-         (cpj/GET "/" req (model-trainer-info model-trainer req)))
+(defn merged-routes [handlers model-trainer]
+  (->> (apply cpj/routes (conj handlers (cpj/GET "/models" req (model-trainer-info model-trainer req))))
        (rjson/wrap-json-response)))
 
-(defrecord Frontend [model-trainer]
+(defrecord Frontend [handlers model-trainer]
   cp/Lifecycle
   (start [self]
     (log/info "start frontend...")
-    (let [server (jetty/run-jetty (routes model-trainer)
+    (let [server (jetty/run-jetty (merged-routes @handlers model-trainer)
                                   {:host  frontend-host
                                    :port  frontend-port
                                    :join? false})]
@@ -33,5 +32,5 @@
     (.stop ^Server (:server self))
     (dissoc self :server)))
 
-(defn new-frontend []
-  (map->Frontend {}))
+(defn new-frontend [handlers]
+  (map->Frontend {:handlers handlers}))

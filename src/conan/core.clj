@@ -36,11 +36,12 @@
        reporter-confs))
 
 (defn conan-system [provider model profiles reporters-configs]
-  (let [validation (validate-config profiles reporters-configs)]
+  (let [validation (validate-config profiles reporters-configs)
+        handlers-atom (atom [])]
     (if (:valid? validation)
       (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider model profiles) [])
                      :detector (cp/using (d/new-detector provider model (reporters reporters-configs)) [:model-trainer])
-                     :frontend (cp/using (fe/new-frontend) [:model-trainer]))
+                     :frontend (cp/using (fe/new-frontend handlers-atom) [:model-trainer]))
       (do
         (log/error "Your config is not in the expected format. Details:\n" (:explanation validation))
         (when (not debug) (System/exit 1))))))
