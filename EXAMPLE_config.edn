@@ -32,7 +32,10 @@
                                                                                      :epsylon   0.02}}
 
  ;; List of reporters used to notify about predictions
- conan.core/reporters-configs                                       [{:type :file :file-path "./predictions"} {:type :console}]
+ conan.core/reporters-configs                                       [{:type :file :file-path "./predictions"}
+                                                                     {:type :console}
+                                                                     {:type :prometheus
+                                                                      :path "/metrics"}]
 
  ;; Interval in ms conan checks for anomalies
  conan.components.detector/repeat-in-ms                             10000

@@ -17,7 +17,8 @@
                  [compojure "1.6.0"]
                  [clj-http "3.7.0"]
                  [ring/ring-json "0.4.0"]
-                 [ring/ring-mock "0.3.1"]]
+                 [ring/ring-mock "0.3.1"]
+                 [de.otto/goo "1.1.0"]]
   :profiles {:test {:jvm-opts ["-Dconfig.edn=test-config.edn"]}
              :prod {:jvm-opts ["-Dconfig.edn=config.edn"]}}
   :aliases {"config" ["run" "-m" "outpace.config.generate"]})

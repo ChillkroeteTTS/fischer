@@ -47,11 +47,11 @@
 (deftest reporters-test
   (testing "it creates a file reporter"
     (is (= [conan.reporter.file_reporter.FileReporter]
-           (map type (c/reporters [{:type :file :file-path nil}])))))
+           (map type (c/reporters [{:type :file :file-path nil}] nil)))))
   (testing "it creates a console reporter"
     (is (= [conan.reporter.console_reporter.ConsoleReporter]
-           (map type (c/reporters [{:type :console}])))))
+           (map type (c/reporters [{:type :console}] nil)))))
   (testing "it creates multiple reporter"
     (is (= [conan.reporter.file_reporter.FileReporter
            conan.reporter.console_reporter.ConsoleReporter]
-           (map type (c/reporters [{:type :file :file-path nil} {:type :console}]))))))
+           (map type (c/reporters [{:type :file :file-path nil} {:type :console}] nil))))))

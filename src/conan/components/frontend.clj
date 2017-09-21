@@ -21,7 +21,8 @@
 (defrecord Frontend [handlers model-trainer]
   cp/Lifecycle
   (start [self]
-    (log/info "start frontend...")
+    (log/info "start frontend with following pre-registered handler")
+    (log/info @handlers)
     (let [server (jetty/run-jetty (merged-routes @handlers model-trainer)
                                   {:host  frontend-host
                                    :port  frontend-port
