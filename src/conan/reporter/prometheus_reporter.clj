@@ -13,7 +13,7 @@
   r/PredictionReporter
   (report [_ profile->prediction]
     (let [update-profile-gauge (fn [[profile-name prediction]]
-                                 (goo/observe! :conan/anomaly-detected {:profile (name profile-name)} (:p prediction))
+                                 (goo/observe! :conan/anomaly-detected {:profile (name profile-name)} (if (:p prediction) 1.0 0.0))
                                  (goo/observe! :conan/score {:profile (name profile-name)} (:s prediction))
                                  (goo/observe! :conan/epsylon {:profile (name profile-name)} (:e prediction)))]
       (run! update-profile-gauge profile->prediction))))
@@ -22,7 +22,8 @@
   (cpj/GET endpoint-path req (fn [req] (resp/response (goo/text-format)))))
 
 (defn new-prometheus-reporter! [handlers-atom endpoint-path]
-  (swap! handlers-atom conj (prom-handler endpoint-path)))
+  (swap! handlers-atom conj (prom-handler endpoint-path))
+  (->PrometheusReporter))
 
 
 
