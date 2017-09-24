@@ -1,6 +1,5 @@
 (ns conan.utils
   (:require [clojure.spec.alpha :as s]
-            [conan.anomaly-detection :as ad]
             [clojure.tools.logging :as log]))
 
 (defmacro timed [& body]

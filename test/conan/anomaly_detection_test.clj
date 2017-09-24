@@ -6,6 +6,37 @@
 (defn close? [tolerance x y]
   (< (- x y) tolerance))
 
+(deftest v-op-test
+  (is (= [3 7 11 15 19]
+         (#'ad/v-op + [1 3 5 7 9] [2 4 6 8 10])))
+  (is (= [-4 0]
+         (#'ad/v-op - [-2 3] [2 3]))))
+
+(deftest matmul-test
+  (is (= [[1 2]
+          [6 8]]
+         (#'ad/matmul
+           [[1 0]
+            [0 2]]
+           [[1 2]
+            [3 4]]))))
+
+(deftest mat-el-wise-op-test
+  (is (= [[1 2 3] [4 5 6]]
+         (#'ad/mat-el-wise-op [[1 2 3] [4 5 6]] +))))
+
+(deftest mat+
+  (is (= [[3 3] [3 3]]
+         (#'ad/mat+ [[1 2] [3 4]] [[2 1] [0 -1]]))))
+
+(deftest multivariate-mu-and-sigma-test
+  (is (= {:mu    [50 5]
+          :sigma [[(double (/ 2 3)) (double (/ 1 3))]
+                  [(double (/ 1 3)) (double (/ 2 3))]]}
+         (#'ad/multivariate-mu-and-sigma [[50 4]
+                                          [49 5]
+                                          [51 6]]))))
+
 (deftest mu-and-sigma-test
   (testing "it trains a mu and a sigma for a single feature"
     (let [feature-values [50 49 51]
