@@ -2,11 +2,11 @@
   (:require [incanter.stats :as stats]
             [clojure.spec.alpha :as s]
             [clojure.spec.alpha :as s]
-            [conan.utils :as utils]))
-(s/def ::vector (s/coll-of number?))
-(s/def ::matrix (s/coll-of ::vector))
-(s/def ::feature-vector ::vector)
-(s/def ::feature-vectors ::matrix)
+            [conan.utils :as utils]
+            [conan.linear-algebra-helpers :as la]))
+
+(s/def ::feature-vector :conan.linear-algebra-helpers/vector)
+(s/def ::feature-vectors (s/coll-of ::feature-vector))
 (s/def ::mu number?)
 (s/def ::multiv-mu (s/coll-of ::mu))
 (s/def ::sigma number?)
@@ -37,42 +37,21 @@
                               val-per-feature))
                m)}))
 
-(defn- v-op [op v1 v2]
-  {:pre [(s/valid? ::feature-vector v1) (s/valid? ::feature-vector v2)] :post [(s/valid? ::feature-vector %)]}
-  (let [el-pairs (partition 2 (interleave v1 v2))]
-    (map #(reduce (fn [agg pair] (op agg pair)) %) el-pairs)))
-
-(defn- mat-el-wise-op [X op]
-  {:pre [(s/valid? ::matrix X)] :post [(s/valid? ::matrix %)]}
-  (map (fn [xri] (map #(op %) xri)) X))
-
-(defn- matmul [X Y]
-  {:pre [(s/valid? ::matrix Y) (s/valid? ::matrix X)] :post [s/valid? ::matrix]}
-  (let [Y-trans (utils/transpose Y)]
-    (map (fn [rxi] (map (fn [cyi] (reduce #(+ %1 %2)
-                                          (v-op * rxi cyi)))
-                        Y-trans))
-         X)))
-
 (defn- covariance-part-mat [x mu]
-  {:pre [(s/valid? ::feature-vector x) (s/valid? ::multiv-mu mu)] :post [(s/valid? ::matrix %)]}
-  (let [x-mu (v-op - x mu)]
-    (matmul (utils/transpose [x-mu]) [x-mu])))
+  {:pre [(s/valid? ::feature-vector x) (s/valid? ::multiv-mu mu)] :post [(s/valid? :conan.linear-algebra-helpers/matrix %)]}
+  (let [x-mu (la/v-op - x mu)]
+    (la/matmul (utils/transpose [x-mu]) [x-mu])))
 
-(defn- mat+ [X Y]
-  {:pre [(s/valid? ::matrix Y) (s/valid? ::matrix X)] :post [(s/valid? ::matrix %)]}
-   (let [Xr-Yr-pairs (partition 2 (interleave X Y))]
-     (map (fn [xr-yr-pair] (v-op + (first xr-yr-pair) (second xr-yr-pair))) Xr-Yr-pairs)))
 
 (defn- multivariate-mu-and-sigma [feature-vectors]
-  {:pre [(s/valid? ::matrix feature-vectors)]}
+  {:pre [(s/valid? :conan.linear-algebra-helpers/matrix feature-vectors)]}
   (let [m (count feature-vectors)
-        mu (map #(/ % m) (reduce #(v-op + %1 %2) feature-vectors))
+        mu (map #(/ % m) (reduce #(la/v-op + %1 %2) feature-vectors))
         cov-part-mats (map #(covariance-part-mat % mu) feature-vectors)
         _ (prn cov-part-mats)
-        _ (prn (reduce #(mat+ %1 %2) cov-part-mats))]
+        _ (prn (reduce #(la/mat+ %1 %2) cov-part-mats))]
     {:mu    mu
-     :sigma (mat-el-wise-op (reduce #(mat+ %1 %2) cov-part-mats) #(double (/ % m)))}))
+     :sigma (la/mat-el-wise-op (reduce #(la/mat+ %1 %2) cov-part-mats) #(double (/ % m)))}))
 
 (defn- gaussian-feature-distribution [[x {:keys [mu sigma]}]]
   (stats/pdf-normal x :mean mu :sd sigma))
