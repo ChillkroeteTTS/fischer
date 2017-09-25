@@ -6,7 +6,7 @@
             [overtone.at-at :as at]
             [com.stuartsierra.component :as cp]
             [conan.reporter.prediction-reporter :as r]
-            [conan.models.GaussianModel :as gauss]))
+            [conan.models.gaussian-model :as gauss]))
 
 (defrecord TestProvider []
   p/TimeSeriesProvider

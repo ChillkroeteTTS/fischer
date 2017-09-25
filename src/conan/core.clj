@@ -5,7 +5,7 @@
             [clj-time.core :as t]
             [com.stuartsierra.component :as cp]
             [clojure.tools.logging :as log]
-            [conan.models.GaussianModel :as gauss]
+            [conan.models.gaussian-model :as gauss]
             [conan.prometheus-provider :as prom]
             [conan.components.frontend :as fe]
             [outpace.config :refer [defconfig! defconfig]]

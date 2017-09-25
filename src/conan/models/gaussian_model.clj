@@ -1,4 +1,4 @@
-(ns conan.models.GaussianModel
+(ns conan.models.gaussian-model
   (:require [conan.model :as m]
             [conan.anomaly-detection :as ad]))
 
