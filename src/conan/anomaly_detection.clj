@@ -38,7 +38,7 @@
                               val-per-feature))
                m)}))
 
-(defn- multivariate-mu-and-sigma [feature-vectors]
+(defn multivariate-train [feature-vectors]
   {:pre [(s/valid? ::feature-vectors feature-vectors)]}
   (let [m (count feature-vectors)
         mu (map stats/mean (utils/transpose feature-vectors))]
