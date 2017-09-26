@@ -1,15 +1,16 @@
 (ns conan.anomaly-detection
   (:require [incanter.stats :as stats]
+            [clojure.core.matrix :as mat]
             [clojure.spec.alpha :as s]
             [clojure.spec.alpha :as s]
-            [conan.utils :as utils]
-            [conan.linear-algebra-helpers :as la]))
+            [conan.utils :as utils]))
 
-(s/def ::feature-vector :conan.linear-algebra-helpers/vector)
+(s/def ::feature-vector mat/vec?)
 (s/def ::feature-vectors (s/coll-of ::feature-vector))
 (s/def ::mu number?)
 (s/def ::multiv-mu (s/coll-of ::mu))
 (s/def ::sigma number?)
+(s/def ::multiv-sigma mat/matrix?)
 (s/def ::mu-and-sigmas (s/coll-of (s/keys :req-un [::mu ::sigma])))
 (s/def ::multiv-mu-and-sigmas (s/keys :req-un [::mu ::sigma]))
 (s/def ::scores (s/coll-of number?))
@@ -37,24 +38,23 @@
                               val-per-feature))
                m)}))
 
-(defn- covariance-part-mat [x mu]
-  {:pre [(s/valid? ::feature-vector x) (s/valid? ::multiv-mu mu)] :post [(s/valid? :conan.linear-algebra-helpers/matrix %)]}
-  (let [x-mu (la/v-op - x mu)]
-    (la/matmul (utils/transpose [x-mu]) [x-mu])))
-
-
 (defn- multivariate-mu-and-sigma [feature-vectors]
-  {:pre [(s/valid? :conan.linear-algebra-helpers/matrix feature-vectors)]}
+  {:pre [(s/valid? ::feature-vectors feature-vectors)]}
   (let [m (count feature-vectors)
-        mu (map #(/ % m) (reduce #(la/v-op + %1 %2) feature-vectors))
-        cov-part-mats (map #(covariance-part-mat % mu) feature-vectors)
-        _ (prn cov-part-mats)
-        _ (prn (reduce #(la/mat+ %1 %2) cov-part-mats))]
+        mu (map stats/mean (utils/transpose feature-vectors))]
     {:mu    mu
-     :sigma (la/mat-el-wise-op (reduce #(la/mat+ %1 %2) cov-part-mats) #(double (/ % m)))}))
+     :sigma (stats/covariance feature-vectors)}))
 
 (defn- gaussian-feature-distribution [[x {:keys [mu sigma]}]]
   (stats/pdf-normal x :mean mu :sd sigma))
+
+(defn- multivariate-gaussian [feature-vector {:keys [mu sigma]}]
+  (let [p (count feature-vector)
+        denominator (Math/sqrt (* (Math/pow (* 2 Math/PI) p) (mat/det sigma)))
+        x-mu (mat/sub feature-vector mu)
+        exp-term (Math/exp (* -1/2 (mat/mmul (mat/transpose x-mu) (mat/inverse sigma) x-mu)))]
+    (/ exp-term denominator))) ; TODO: Calc determinant once per prediction cycle
+
 
 (defn- predict-one [feature-vector mu-and-sigma]
   {:pre [(s/valid? ::feature-vector feature-vector)
@@ -68,6 +68,13 @@
   {:pre  [(s/valid? ::feature-vectors feature-vectors)]
    :post [(s/valid? ::mu-and-sigmas %)]}
   (map mu-and-sigma (apply map vector feature-vectors)))
+
+(defn multivariate-scores [feature-vectors mu-and-sigma]
+  {:pre  [(s/valid? ::feature-vectors feature-vectors)
+          (s/valid? ::multiv-mu (:mu mu-and-sigma))
+          (s/valid? ::multiv-sigma (:sigma mu-and-sigma))]
+   :post [(s/valid? ::scores %)]}
+  (map #(multivariate-gaussian % mu-and-sigma) feature-vectors))
 
 (defn scores [feature-vectors mu-and-sigma]
   {:pre  [(s/valid? ::feature-vectors feature-vectors)]

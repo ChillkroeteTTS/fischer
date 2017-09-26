@@ -1,18 +1,24 @@
 (ns conan.anomaly-detection-test
   (:require [clojure.test :refer :all]
             [conan.core :refer :all]
-            [conan.anomaly-detection :as ad]))
+            [conan.anomaly-detection :as ad]
+            [clojure.core.matrix :as mat]
+            [conan.utils :as utils]
+            [incanter.stats :as stats]))
 
 (defn close? [tolerance x y]
   (< (- x y) tolerance))
 
-(deftest multivariate-mu-and-sigma-test
-  (is (= {:mu    [50 5]
-          :sigma [[(double (/ 2 3)) (double (/ 1 3))]
-                  [(double (/ 1 3)) (double (/ 2 3))]]}
-         (#'ad/multivariate-mu-and-sigma [[50 4]
-                                          [49 5]
-                                          [51 6]]))))
+
+(deftest multivariate-gaussian-test
+  (let [mu+sigma {:mu    [50.0 100.0]
+                  :sigma (mat/matrix [[858.5
+                                       1720.947387513257]
+                                      [1720.9473875132567
+                                       3450.690734381145]])}]
+    (is (= [0.0057804442239349435 0.0] (#'ad/multiv-scores [[50 100]
+                                                            [100 50]] mu+sigma))))
+  )
 
 (deftest mu-and-sigma-test
   (testing "it trains a mu and a sigma for a single feature"

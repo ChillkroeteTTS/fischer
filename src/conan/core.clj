@@ -6,6 +6,7 @@
             [com.stuartsierra.component :as cp]
             [clojure.tools.logging :as log]
             [conan.models.gaussian-model :as gauss]
+            [conan.models.multivariate-gaussian-model :as mgauss]
             [conan.prometheus-provider :as prom]
             [conan.components.frontend :as fe]
             [outpace.config :refer [defconfig! defconfig]]
@@ -50,7 +51,7 @@
         (when (not debug) (System/exit 1))))))
 
 (def prom-provider (prom/->PrometheusProvider host port profiles))
-(def gaussian-model (gauss/->GaussianModel))
+(def gaussian-model (mgauss/->MultivariateGaussianModel))
 
 (defn -main [& argv]
   (cp/start (conan-system prom-provider gaussian-model profiles reporters-configs)))

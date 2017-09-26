@@ -5,6 +5,7 @@
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [incanter "1.9.1" :exclusions [org.clojure/clojure]]
+                 [net.mikera/core.matrix "0.61.0"]
                  [clj-http "3.6.1"]
                  [clojure-future-spec "1.9.0-alpha17"]
                  [org.clojure/data.json "0.2.6"]
