@@ -1,6 +1,7 @@
 (ns conan.utils
   (:require [clojure.spec.alpha :as s]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [clojure.core.matrix :as mat]))
 
 (defmacro timed [& body]
   `(let [start-time# (System/currentTimeMillis)
@@ -23,7 +24,9 @@
        (filtered-keyset key->props)
        (sorted-kv-list key->props)
        (map second)
-       (transpose)))
+       #_((fn [a] (prn (count a) "   " (map count a)) a))
+       (mat/transpose)
+       #_((fn [a] (prn (count a) "   " (map count a)) a))))
 
 (defn exc-logger [fn]
   (try

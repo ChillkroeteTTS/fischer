@@ -48,7 +48,7 @@
 (defn- gaussian-feature-distribution [[x {:keys [mu sigma]}]]
   (stats/pdf-normal x :mean mu :sd sigma))
 
-(defn- multivariate-gaussian [feature-vector {:keys [mu sigma]}]
+(defn- multivariate-predict-one [feature-vector {:keys [mu sigma]}]
   (let [p (count feature-vector)
         denominator (Math/sqrt (* (Math/pow (* 2 Math/PI) p) (mat/det sigma)))
         x-mu (mat/sub feature-vector mu)
@@ -64,6 +64,27 @@
         v (reduce * feature-distributions)]
     (reduce * feature-distributions)))
 
+(defn covariance [feature-vectors mu]
+  (let [sum-term (fn [feature-vector]
+                   (let [x-mu (mat/sub feature-vector mu)
+                         x-mu-as-matrix [x-mu]]
+                     (prn "x-mu-as-matrix -------------------")
+                     (prn x-mu-as-matrix)
+                     (mat/mmul (mat/transpose x-mu-as-matrix) x-mu-as-matrix)))
+        m (count feature-vectors)]
+    (mat/div (reduce mat/add (map sum-term feature-vectors))
+             m)))
+
+(defn multivariate-train [feature-vectors]
+  {:pre [(s/valid? ::feature-vectors feature-vectors)]}
+  (prn feature-vectors)
+  (prn "fvs in train")
+  (let [m (count feature-vectors)
+        mu (mat/div (reduce mat/add feature-vectors)
+                    m)]
+    {:mu    mu
+     :sigma (covariance feature-vectors mu)}))
+
 (defn train [feature-vectors]
   {:pre  [(s/valid? ::feature-vectors feature-vectors)]
    :post [(s/valid? ::mu-and-sigmas %)]}
@@ -74,7 +95,7 @@
           (s/valid? ::multiv-mu (:mu mu-and-sigma))
           (s/valid? ::multiv-sigma (:sigma mu-and-sigma))]
    :post [(s/valid? ::scores %)]}
-  (map #(multivariate-gaussian % mu-and-sigma) feature-vectors))
+  (map #(multivariate-predict-one % mu-and-sigma) feature-vectors))
 
 (defn scores [feature-vectors mu-and-sigma]
   {:pre  [(s/valid? ::feature-vectors feature-vectors)]

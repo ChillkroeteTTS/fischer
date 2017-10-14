@@ -93,5 +93,5 @@
 
 (defn new-gaussian-ad-trainer [provider model profiles]
   (map->GaussianAnomalyDetectionTrainer {:ts-provider provider
-                                         :model model
+                                         :model       model
                                          :profiles    profiles}))

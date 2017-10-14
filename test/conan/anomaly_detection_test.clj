@@ -9,6 +9,15 @@
 (defn close? [tolerance x y]
   (< (- x y) tolerance))
 
+(deftest covariance-test
+  (testing "returns the same matrix as incanter would"
+    (let [feature-vectors [[4 80] [6 140] [10 220]]
+          mu (mat/div (reduce mat/add feature-vectors) (count feature-vectors))]
+      (is (= [[6.222222222222221
+               142.2222222222222]
+              [142.2222222222222
+               3288.888888888889]]
+             (ad/covariance feature-vectors mu))))))
 
 (deftest multivariate-gaussian-test
   (let [mu+sigma {:mu    [50.0 100.0]
@@ -16,9 +25,8 @@
                                        1720.947387513257]
                                       [1720.9473875132567
                                        3450.690734381145]])}]
-    (is (= [0.0057804442239349435 0.0] (#'ad/multiv-scores [[50 100]
-                                                            [100 50]] mu+sigma))))
-  )
+    (is (= [0.0057804442239349435 0.0] (#'ad/multivariate-scores [[50 100]
+                                                                  [100 50]] mu+sigma)))))
 
 (deftest mu-and-sigma-test
   (testing "it trains a mu and a sigma for a single feature"
