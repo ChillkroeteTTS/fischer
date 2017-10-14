@@ -68,8 +68,6 @@
   (let [sum-term (fn [feature-vector]
                    (let [x-mu (mat/sub feature-vector mu)
                          x-mu-as-matrix [x-mu]]
-                     (prn "x-mu-as-matrix -------------------")
-                     (prn x-mu-as-matrix)
                      (mat/mmul (mat/transpose x-mu-as-matrix) x-mu-as-matrix)))
         m (count feature-vectors)]
     (mat/div (reduce mat/add (map sum-term feature-vectors))
@@ -77,8 +75,6 @@
 
 (defn multivariate-train [feature-vectors]
   {:pre [(s/valid? ::feature-vectors feature-vectors)]}
-  (prn feature-vectors)
-  (prn "fvs in train")
   (let [m (count feature-vectors)
         mu (mat/div (reduce mat/add feature-vectors)
                     m)]

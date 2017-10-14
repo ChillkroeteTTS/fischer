@@ -20,10 +20,22 @@
 (defn- build-index-map [X-trans-map]
   (into {} (map-indexed (fn [idx [keymap values]] [keymap {:idx idx}]) X-trans-map)))
 
+(defn- check-completeness [X-trans-map]
+  (let [apply-count-to-vals #(assoc %1 %2 (count %3))
+        key->sample-no (reduce-kv apply-count-to-vals {} X-trans-map)
+        sample-no->#occurrences (reduce-kv apply-count-to-vals {} (group-by identity (vals key->sample-no)))
+        most-common-sample-no (second (last (sort (clojure.set/map-invert sample-no->#occurrences))))]
+    (reduce-kv (fn [m k _] (assoc m k {:train-sample-no (get key->sample-no k)
+                                    :train-sample-complete? (= most-common-sample-no
+                                                               (get key->sample-no k))}))
+            {} X-trans-map)))
+
 (defn- key->properties [X-trans-map]
-  (let [key->index (build-index-map X-trans-map)]
+  (let [key->completion-info (check-completeness X-trans-map)
+        key->index (build-index-map X-trans-map)]
     (->> (into {} (map (fn [[k v]] [k {:feature-vals v}]) X-trans-map))
-         (merge-with merge key->index))))
+         (merge-with merge key->index)
+         (merge-with merge key->completion-info))))
 
 (defn- engineered-features [X-trans]
   (let [no-values-per-feature (map (fn [[k-map vals]] (count vals)) X-trans)
@@ -54,9 +66,9 @@
     X-trans-map))
 
 (defn- trained-profile [model config X-trans-map]
-  (let [key->props (key->properties X-trans-map)
-        models (some-> X-trans-map
-                       (fill-time-series-gaps)
+  (let [sanitized-X-trans-map (fill-time-series-gaps X-trans-map)
+        key->props (key->properties sanitized-X-trans-map)
+        models (some-> sanitized-X-trans-map
                        (utils/extract-bare-features key->props)
                        (write-to-plate!)
                        (#(m/train model %)))]

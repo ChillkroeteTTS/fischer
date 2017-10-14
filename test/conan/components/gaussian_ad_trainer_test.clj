@@ -14,11 +14,26 @@
          (#'gadt/build-index-map {:key1 [1 2 3 4]
                                   :key2 [5 6 7 8]}))))
 
+(deftest check-completeness-test
+  (testing "only features where #samples equals the most common #samples are complete")
+  (is (=  {:key1 {:train-sample-no 4 :train-sample-complete? true}
+           :key2 {:train-sample-no 3 :train-sample-complete? false}
+           :key3 {:train-sample-no 4 :train-sample-complete? true}
+           :key4 {:train-sample-no 5 :train-sample-complete? false}}
+         (#'gadt/check-completeness {:key1 [1 2 3 4]
+                                     :key2 [5 7 8]
+                                     :key3 [1 1 1 1]
+                                     :key4 [1 1 1 1 1]}))))
+
 (deftest key->properties-test
   (is (= {{}           {:idx          0
-                        :feature-vals [1 2 3]}
+                        :feature-vals [1 2 3]
+                        :train-sample-complete? true
+                        :train-sample-no        3}
           {:dummy nil} {:idx          1
-                        :feature-vals [10 15.5 30]}}
+                        :feature-vals [10 15.5 30]
+                        :train-sample-complete? true
+                        :train-sample-no        3}}
          (#'gadt/key->properties {{}           [1 2 3]
                                   {:dummy nil} [10 15.5 30]}))))
 
@@ -53,9 +68,13 @@
                                          {:mu    4.0
                                           :sigma 0.6}])]
         (is (= {:key->props {{:__name__ "metric1"} {:idx          0
-                                                    :feature-vals [50.0 51.0 49.0]}
+                                                    :feature-vals [50.0 51.0 49.0]
+                                                    :train-sample-complete? true
+                                                    :train-sample-no        3}
                              {:__name__ "metric2"} {:idx          1
-                                                    :feature-vals [4.0 5.0 3.0]}}
+                                                    :feature-vals [4.0 5.0 3.0]
+                                                    :train-sample-complete? true
+                                                    :train-sample-no        3}}
                 :models     [{:mu    50.0
                               :sigma 0.6}
                              {:mu    4.0
@@ -65,10 +84,10 @@
 
 (def train-rs-1 [{:mu 50.0 :sigma 0.6}])
 (def train-rs-2 [{:mu 40.0 :sigma 0.6}])
-(def expected-rs {:profile1 {:key->props {{:__name__ "metric1"} {:idx 0, :feature-vals [1]}}
+(def expected-rs {:profile1 {:key->props {{:__name__ "metric1"} {:idx 0, :feature-vals [1] :train-sample-complete? true :train-sample-no 1}}
                              :epsylon    0.02
                              :models     train-rs-1}
-                  :profile2 {:key->props {{:__name__ "metric2"} {:idx 0, :feature-vals [2]}}
+                  :profile2 {:key->props {{:__name__ "metric2"} {:idx 0, :feature-vals [2] :train-sample-complete? true :train-sample-no 1}}
                              :epsylon    0.04
                              :models     train-rs-2}})
 

@@ -13,7 +13,8 @@
   (apply map vector matrix))
 
 (defn filtered-keyset [key->props key->feature]
-  (select-keys key->feature (keys key->props)))
+  (let [complete-props (into {} (filter (fn [[k props]] (:train-sample-complete? props)) key->props))]
+    (select-keys key->feature (keys complete-props))))
 
 (defn sorted-kv-list [key->props key->feature]
   (reduce (fn [agg [k v]] (concat agg [[k v]])) []
@@ -24,9 +25,7 @@
        (filtered-keyset key->props)
        (sorted-kv-list key->props)
        (map second)
-       #_((fn [a] (prn (count a) "   " (map count a)) a))
-       (mat/transpose)
-       #_((fn [a] (prn (count a) "   " (map count a)) a))))
+       (mat/transpose)))
 
 (defn exc-logger [fn]
   (try
