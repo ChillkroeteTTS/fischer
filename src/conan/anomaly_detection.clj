@@ -3,7 +3,8 @@
             [clojure.core.matrix :as mat]
             [clojure.spec.alpha :as s]
             [clojure.spec.alpha :as s]
-            [conan.utils :as utils]))
+            [conan.utils :as utils]
+            [clojure.tools.logging :as log]))
 
 (s/def ::feature-vector mat/vec?)
 (s/def ::feature-vectors (s/coll-of ::feature-vector))
@@ -38,23 +39,19 @@
                               val-per-feature))
                m)}))
 
-(defn multivariate-train [feature-vectors]
-  {:pre [(s/valid? ::feature-vectors feature-vectors)]}
-  (let [m (count feature-vectors)
-        mu (map stats/mean (utils/transpose feature-vectors))]
-    {:mu    mu
-     :sigma (stats/covariance feature-vectors)}))
-
 (defn- gaussian-feature-distribution [[x {:keys [mu sigma]}]]
   (stats/pdf-normal x :mean mu :sd sigma))
 
-(defn- multivariate-gaussian [feature-vector {:keys [mu sigma]}]
-  (let [p (count feature-vector)
-        denominator (Math/sqrt (* (Math/pow (* 2 Math/PI) p) (mat/det sigma)))
-        x-mu (mat/sub feature-vector mu)
-        exp-term (Math/exp (* -1/2 (mat/mmul (mat/transpose x-mu) (mat/inverse sigma) x-mu)))]
-    (/ exp-term denominator))) ; TODO: Calc determinant once per prediction cycle
-
+(defn- multivariate-predict-one [feature-vector {:keys [mu sigma]}]
+  (if-let [invers-sigma (mat/inverse sigma)]
+    (let [p (count feature-vector)
+          denominator (Math/sqrt (* (Math/pow (* 2 Math/PI) p) (mat/det sigma)))
+          x-mu (mat/sub feature-vector mu)
+          exp-term (Math/exp (* -1/2 (mat/mmul (mat/transpose x-mu) invers-sigma x-mu)))]
+      (/ exp-term denominator)) ; TODO: Calc determinant once per prediction cycle
+    (do
+      (log/error "Unable to invert sigma.")
+      nil)))
 
 (defn- predict-one [feature-vector mu-and-sigma]
   {:pre [(s/valid? ::feature-vector feature-vector)
@@ -63,6 +60,13 @@
         feature-distributions (map gaussian-feature-distribution features-w-mu-a-s)
         v (reduce * feature-distributions)]
     (reduce * feature-distributions)))
+
+(defn multivariate-train [feature-vectors]
+  {:pre [(s/valid? ::feature-vectors feature-vectors)]}
+  (let [m (count feature-vectors)
+        mu (map stats/mean (utils/transpose feature-vectors))]
+    {:mu    mu
+     :sigma (stats/covariance feature-vectors)}))
 
 (defn train [feature-vectors]
   {:pre  [(s/valid? ::feature-vectors feature-vectors)]
@@ -74,7 +78,7 @@
           (s/valid? ::multiv-mu (:mu mu-and-sigma))
           (s/valid? ::multiv-sigma (:sigma mu-and-sigma))]
    :post [(s/valid? ::scores %)]}
-  (map #(multivariate-gaussian % mu-and-sigma) feature-vectors))
+  (map #(multivariate-predict-one % mu-and-sigma) feature-vectors))
 
 (defn scores [feature-vectors mu-and-sigma]
   {:pre  [(s/valid? ::feature-vectors feature-vectors)]
