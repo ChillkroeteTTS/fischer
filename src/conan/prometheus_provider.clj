@@ -69,6 +69,7 @@
 (defrecord PrometheusProvider [host port config]
   p/TimeSeriesProvider
   (training-data [_]
+    (log/info "Fetch training data...")
     (into {} (map (fn [[profile-key config]] [profile-key (profile-results host port config)]) config)))
   (prediction-data [_]
     (into {} (map (fn [[profile-key config]] [profile-key (prediction-data-results host port config)]) config))))

@@ -65,10 +65,12 @@
      :epsylon    (:epsylon config)}))
 
 (defn- train-models [ts-provider model profiles models-atom]
+  (log/info "Train model...")
   (let [profiles+trained-profiles (fn [[profile X-trans]] [profile (trained-profile model (get profiles profile) X-trans)])
         trained-profiles (->> (p/training-data ts-provider)
                               (map profiles+trained-profiles)
                               (into {}))]
+    (log/info "... model trained")
     (reset! models-atom trained-profiles)))
 
 (defconfig! model-training-interval-in-ms)

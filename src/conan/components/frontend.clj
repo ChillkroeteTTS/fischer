@@ -11,8 +11,12 @@
 (defconfig! frontend-host)
 (defconfig! frontend-port)
 
+(defn apply-to-vals [myMap myFun]
+  (into {} (map (fn [[k v]] [k (if (map? v) (apply-to-vals v myFun) (myFun v))]) myMap)))
+
 (defn model-trainer-info [model-trainer req]
-  (resp/response @(:trained-profiles model-trainer)))
+  (let [trained-profiles @(:trained-profiles model-trainer)]
+    (resp/response (apply-to-vals trained-profiles (fn [el] (if (seq? el) (apply str el) (str el)))))))
 
 (defn merged-routes [handlers model-trainer]
   (->> (apply cpj/routes (conj handlers (cpj/GET "/models" req (model-trainer-info model-trainer req))))
