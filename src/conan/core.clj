@@ -13,7 +13,8 @@
             [clojure.spec.alpha :as s]
             [conan.reporter.console-reporter :as cr]
             [conan.reporter.file-reporter :as fr]
-            [conan.reporter.prometheus-reporter :as promr]))
+            [conan.reporter.prometheus-reporter :as promr])
+  (:gen-class))
 (s/def ::profile (s/keys :req-un [::step-size ::days-back ::queries ::epsylon]))
 (s/def ::profiles (s/map-of (constantly true) ::profile))
 (s/def ::reporters (s/coll-of (s/keys :req-un [::type])))

@@ -14,6 +14,20 @@ Please mind that conan is still under heavy development, if you want to contribu
 The entire configuration is done from a file called `config.edn` located in the working directory.
 See `EXAMPLE_config.edn` for documentation.
 
+### Lein
+Do `lein run` in the repository folder and of you go.
+
+### Docker
+Just mount your `config.edn` into the home directory of `/conan/`.
+
+Example:
+
+```docker run -v [PATH_TO_YOUR_CONFIG]:/conan/config.edn conan```
+
+## Debugging
+To see with which features conan trained it's model and what the model looks like
+visit `http://[HOST]:[PORT]/models`.
+
 ## License
 
 Copyright © 2017 Tjark Smalla
