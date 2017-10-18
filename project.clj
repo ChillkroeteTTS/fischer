@@ -1,6 +1,9 @@
-(defproject fischer "0.1.0-SNAPSHOT"
+(defproject fischer :lein-v
+  :plugins [[com.roomkey/lein-v "6.2.0"]
+            [lein-release "1.0.9"]]
   :description "A clojure anomaly detection service"
   :main fischer.core
+  :lein-release {:build-uberjar true}
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
@@ -20,7 +23,11 @@
                  [ring/ring-json "0.4.0"]
                  [ring/ring-mock "0.3.1"]
                  [de.otto/goo "1.1.0"]]
-  :profiles {:test {:jvm-opts ["-Dconfig.edn=test-resources/test-config.edn"]}
-             :prod {:jvm-opts ["-Dconfig.edn=config.edn"]}
+  :profiles {:test    {:jvm-opts ["-Dconfig.edn=test-resources/test-config.edn"]}
+             :prod    {:jvm-opts ["-Dconfig.edn=config.edn"]}
              :uberjar {:aot :all}}
-  :aliases {"config" ["run" "-m" "outpace.config.generate"]})
+  :aliases {"config" ["run" "-m" "outpace.config.generate"]}
+  :release-tasks [["vcs" "assert-committed"]
+                  ["v" "update"] ;; compute new version & tag it
+                  ;["vcs" "push"]
+                  ])

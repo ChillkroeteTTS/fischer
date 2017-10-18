@@ -14,4 +14,7 @@ config.edn
 *.iml
 data
 scores
-
+predictions
+trainData
+scrape_grafana_dashboard.clj
+src/version.clj
