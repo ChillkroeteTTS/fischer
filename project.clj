@@ -1,9 +1,11 @@
 (defproject fischer :lein-v
+  :docker {:image-name "chillkroetetts/fischer"
+           :dockerfile "Dockerfile"
+           :build-dir  "."}
   :plugins [[com.roomkey/lein-v "6.2.0"]
-            [lein-release "1.0.9"]]
+            [io.sarnowski/lein-docker "1.1.0"]]
   :description "A clojure anomaly detection service"
   :main fischer.core
-  :lein-release {:build-uberjar true}
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
@@ -29,5 +31,8 @@
   :aliases {"config" ["run" "-m" "outpace.config.generate"]}
   :release-tasks [["vcs" "assert-committed"]
                   ["v" "update"] ;; compute new version & tag it
-                  ;["vcs" "push"]
-                  ])
+                  ["clean"]
+                  ["uberjar"]
+                  ["docker" "build"]
+                  ;["docker" "push"]
+                  ["vcs" "push"]])

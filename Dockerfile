@@ -5,6 +5,6 @@ RUN mkdir /fischer/ && chown -R fischer:fischer /fischer
 USER fischer
 WORKDIR "/fischer"
 
-COPY "target/fischer-0.1.0-SNAPSHOT-standalone.jar" "/fischer/fischer.jar"
+COPY "target/fischer-*-standalone.jar" "/fischer/fischer.jar"
 
 CMD ["java", "-jar", "fischer.jar"]
