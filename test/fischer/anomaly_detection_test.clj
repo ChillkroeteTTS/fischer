@@ -1,9 +1,9 @@
-(ns conan.anomaly-detection-test
+(ns fischer.anomaly-detection-test
   (:require [clojure.test :refer :all]
-            [conan.core :refer :all]
-            [conan.anomaly-detection :as ad]
+            [fischer.core :refer :all]
+            [fischer.anomaly-detection :as ad]
             [clojure.core.matrix :as mat]
-            [conan.utils :as utils]
+            [fischer.utils :as utils]
             [incanter.stats :as stats]))
 
 (defn close? [tolerance x y]

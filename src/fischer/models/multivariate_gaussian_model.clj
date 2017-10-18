@@ -1,6 +1,6 @@
-(ns conan.models.multivariate-gaussian-model
-  (:require [conan.model :as m]
-            [conan.anomaly-detection :as ad]))
+(ns fischer.models.multivariate-gaussian-model
+  (:require [fischer.model :as m]
+            [fischer.anomaly-detection :as ad]))
 
 (defrecord MultivariateGaussianModel []
   m/Model

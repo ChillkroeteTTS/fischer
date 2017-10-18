@@ -1,5 +1,5 @@
-(ns conan.reporter.file-reporter
-  (:require [conan.reporter.prediction-reporter :as r]
+(ns fischer.reporter.file-reporter
+  (:require [fischer.reporter.prediction-reporter :as r]
             [clj-time.core :as t]))
 
 (defrecord FileReporter [file-path]

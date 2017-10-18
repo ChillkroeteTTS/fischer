@@ -1,19 +1,19 @@
-(ns conan.core
-  (:require [conan.anomaly-detection :as ad]
-            [conan.components.detector :as d]
-            [conan.components.gaussian-ad-trainer :as gadt]
+(ns fischer.core
+  (:require [fischer.anomaly-detection :as ad]
+            [fischer.components.detector :as d]
+            [fischer.components.gaussian-ad-trainer :as gadt]
             [clj-time.core :as t]
             [com.stuartsierra.component :as cp]
             [clojure.tools.logging :as log]
-            [conan.models.gaussian-model :as gauss]
-            [conan.models.multivariate-gaussian-model :as mgauss]
-            [conan.prometheus-provider :as prom]
-            [conan.components.frontend :as fe]
+            [fischer.models.gaussian-model :as gauss]
+            [fischer.models.multivariate-gaussian-model :as mgauss]
+            [fischer.prometheus-provider :as prom]
+            [fischer.components.frontend :as fe]
             [outpace.config :refer [defconfig! defconfig]]
             [clojure.spec.alpha :as s]
-            [conan.reporter.console-reporter :as cr]
-            [conan.reporter.file-reporter :as fr]
-            [conan.reporter.prometheus-reporter :as promr])
+            [fischer.reporter.console-reporter :as cr]
+            [fischer.reporter.file-reporter :as fr]
+            [fischer.reporter.prometheus-reporter :as promr])
   (:gen-class))
 (s/def ::profile (s/keys :req-un [::step-size ::days-back ::queries ::epsylon]))
 (s/def ::profiles (s/map-of (constantly true) ::profile))
@@ -39,7 +39,7 @@
            :prometheus (promr/new-prometheus-reporter! handler-atom (:path reporter-conf))))
        reporter-confs))
 
-(defn conan-system [provider model profiles reporters-configs]
+(defn fischer-system [provider model profiles reporters-configs]
   (let [validation (validate-config profiles reporters-configs)
         handler-atom (atom [])
         reporters (reporters reporters-configs handler-atom)]
@@ -55,4 +55,4 @@
 (def gaussian-model (mgauss/->MultivariateGaussianModel))
 
 (defn -main [& argv]
-  (cp/start (conan-system prom-provider gaussian-model profiles reporters-configs)))
+  (cp/start (fischer-system prom-provider gaussian-model profiles reporters-configs)))

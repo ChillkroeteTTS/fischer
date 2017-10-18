@@ -1,11 +1,11 @@
-(ns conan.detector-test
+(ns fischer.detector-test
   (:require [clojure.test :refer :all]
-            [conan.components.detector :as d]
+            [fischer.components.detector :as d]
             [clojure.java.io :as io]
-            [conan.anomaly-detection :as ad]
-            [conan.time-series-provider :as p]
-            [conan.reporter.prediction-reporter :as r]
-            [conan.model :as m]))
+            [fischer.anomaly-detection :as ad]
+            [fischer.time-series-provider :as p]
+            [fischer.reporter.prediction-reporter :as r]
+            [fischer.model :as m]))
 
 (defrecord TestReporter [pred-atom]
   r/PredictionReporter

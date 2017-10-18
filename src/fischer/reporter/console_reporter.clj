@@ -1,5 +1,5 @@
-(ns conan.reporter.console-reporter
-  (:require [conan.reporter.prediction-reporter :as r]))
+(ns fischer.reporter.console-reporter
+  (:require [fischer.reporter.prediction-reporter :as r]))
 
 (defrecord ConsoleReporter []
   r/PredictionReporter

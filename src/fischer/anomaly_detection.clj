@@ -1,9 +1,9 @@
-(ns conan.anomaly-detection
+(ns fischer.anomaly-detection
   (:require [incanter.stats :as stats]
             [clojure.core.matrix :as mat]
             [clojure.spec.alpha :as s]
             [clojure.spec.alpha :as s]
-            [conan.utils :as utils])
+            [fischer.utils :as utils])
   (:import (mikera.util.mathz MathsException)))
 
 (s/def ::feature-vector mat/vec?)

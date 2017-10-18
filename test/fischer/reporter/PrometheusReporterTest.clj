@@ -1,7 +1,7 @@
-(ns conan.reporter.PrometheusReporterTest
+(ns fischer.reporter.PrometheusReporterTest
   (:require [clojure.test :refer :all]
-            [conan.reporter.prometheus-reporter :as promr]
-            [conan.reporter.prediction-reporter :as r]
+            [fischer.reporter.prometheus-reporter :as promr]
+            [fischer.reporter.prediction-reporter :as r]
             [de.otto.goo.goo :as goo]
             [ring.mock.request :as mock]
             [clojure.string :as s]))
@@ -14,8 +14,8 @@
                                             :profile2 {:p false
                                                        :s 0.03
                                                        :e 0.02}})
-    (is (= 1.0 (.get ((goo/snapshot) :conan/anomaly-detected {:profile "profile1"}))))
-    (is (= 0.0 (.get ((goo/snapshot) :conan/anomaly-detected {:profile "profile2"}))))))
+    (is (= 1.0 (.get ((goo/snapshot) :fischer/anomaly-detected {:profile "profile1"}))))
+    (is (= 0.0 (.get ((goo/snapshot) :fischer/anomaly-detected {:profile "profile2"}))))))
 
 (deftest prom-handler-test
   (r/report (promr/->PrometheusReporter) {:testprofile {:p 1.0 :s 0.01 :e 0.02}})

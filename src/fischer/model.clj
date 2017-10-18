@@ -1,4 +1,4 @@
-(ns conan.model)
+(ns fischer.model)
 
 (defprotocol Model
   (train [_ feature-vectors])

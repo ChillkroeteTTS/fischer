@@ -1,9 +1,9 @@
-(ns conan.components.gaussian-ad-trainer-test
+(ns fischer.components.gaussian-ad-trainer-test
   (:require [clojure.test :refer :all]
-            [conan.components.gaussian-ad-trainer :as gadt]
-            [conan.time-series-provider :as p]
-            [conan.model :as m]
-            [conan.anomaly-detection :as ad]
+            [fischer.components.gaussian-ad-trainer :as gadt]
+            [fischer.time-series-provider :as p]
+            [fischer.model :as m]
+            [fischer.anomaly-detection :as ad]
             [com.stuartsierra.component :as cp]
             [overtone.at-at :as at]))
 

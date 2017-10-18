@@ -1,8 +1,8 @@
-(ns conan.reporter.file-reporter-test
+(ns fischer.reporter.file-reporter-test
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
-            [conan.reporter.file-reporter :as fr]
-            [conan.reporter.prediction-reporter :as r]
+            [fischer.reporter.file-reporter :as fr]
+            [fischer.reporter.prediction-reporter :as r]
             [clj-time.core :as t]))
 
 (def test-file-path "test-resources/predictions")

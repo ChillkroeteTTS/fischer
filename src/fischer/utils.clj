@@ -1,4 +1,4 @@
-(ns conan.utils
+(ns fischer.utils
   (:require [clojure.spec.alpha :as s]
             [clojure.tools.logging :as log]
             [clojure.core.matrix :as mat]))

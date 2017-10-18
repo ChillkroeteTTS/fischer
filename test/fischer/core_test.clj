@@ -1,12 +1,12 @@
-(ns conan.core-test
-  (:require [conan.core :as c]
+(ns fischer.core-test
+  (:require [fischer.core :as c]
             [clojure.test :refer :all]
-            [conan.time-series-provider :as p]
-            [conan.utils :as utils]
+            [fischer.time-series-provider :as p]
+            [fischer.utils :as utils]
             [overtone.at-at :as at]
             [com.stuartsierra.component :as cp]
-            [conan.reporter.prediction-reporter :as r]
-            [conan.models.gaussian-model :as gauss]))
+            [fischer.reporter.prediction-reporter :as r]
+            [fischer.models.gaussian-model :as gauss]))
 
 (defrecord TestProvider []
   p/TimeSeriesProvider
@@ -34,7 +34,7 @@
       (with-redefs [at/every (fn [_ fn _ _ _] (fn))
                     at/stop identity
                     c/reporters (constantly [test-reporter])]
-        (let [s (cp/start (c/conan-system (->TestProvider) (gauss/->GaussianModel) profile-conf []))]
+        (let [s (cp/start (c/fischer-system (->TestProvider) (gauss/->GaussianModel) profile-conf []))]
           (is (= [{:normal-profile    {:e 0.02
                                        :p false
                                        :s 0.08615711720739454}
@@ -46,12 +46,12 @@
 
 (deftest reporters-test
   (testing "it creates a file reporter"
-    (is (= [conan.reporter.file_reporter.FileReporter]
+    (is (= [fischer.reporter.file_reporter.FileReporter]
            (map type (c/reporters [{:type :file :file-path nil}] nil)))))
   (testing "it creates a console reporter"
-    (is (= [conan.reporter.console_reporter.ConsoleReporter]
+    (is (= [fischer.reporter.console_reporter.ConsoleReporter]
            (map type (c/reporters [{:type :console}] nil)))))
   (testing "it creates multiple reporter"
-    (is (= [conan.reporter.file_reporter.FileReporter
-           conan.reporter.console_reporter.ConsoleReporter]
+    (is (= [fischer.reporter.file_reporter.FileReporter
+           fischer.reporter.console_reporter.ConsoleReporter]
            (map type (c/reporters [{:type :file :file-path nil} {:type :console}] nil))))))

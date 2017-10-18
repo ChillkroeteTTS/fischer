@@ -1,15 +1,15 @@
-(ns conan.components.detector
+(ns fischer.components.detector
   (:require [clojure.tools.logging :as log]
             [overtone.at-at :as at]
             [com.stuartsierra.component :as cp]
-            [conan.anomaly-detection :as ad]
-            [conan.utils :as utils]
-            [conan.time-series-provider :as p]
+            [fischer.anomaly-detection :as ad]
+            [fischer.utils :as utils]
+            [fischer.time-series-provider :as p]
             [outpace.config :refer [defconfig!]]
-            [conan.reporter.prediction-reporter :as r]
-            [conan.reporter.console-reporter :as cr]
-            [conan.utils :as u]
-            [conan.model :as m]))
+            [fischer.reporter.prediction-reporter :as r]
+            [fischer.reporter.console-reporter :as cr]
+            [fischer.utils :as u]
+            [fischer.model :as m]))
 
 (defn- profile->features [ts-provider profile->key->props]
   (let [profiles->X-trans (p/prediction-data ts-provider)

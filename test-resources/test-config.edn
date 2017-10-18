@@ -2,23 +2,23 @@
 
  ;; CONFIG ENTRIES:
 
- conan.components.gaussian-ad-trainer/model-training-interval-in-ms 1000
+ fischer.components.gaussian-ad-trainer/model-training-interval-in-ms 1000
 
- conan.components.gaussian-ad-trainer/training-data-to-disk         false
+ fischer.components.gaussian-ad-trainer/training-data-to-disk         false
 
- conan.core/debug                                                   false
+ fischer.core/debug                                                   false
 
- conan.core/host                                                    ""
+ fischer.core/host                                                    ""
 
- conan.core/port                                                    0
+ fischer.core/port                                                    0
 
- conan.components.frontend/frontend-host                            "127.0.0.1"
+ fischer.components.frontend/frontend-host                            "127.0.0.1"
 
- conan.components.frontend/frontend-port                            8080
+ fischer.components.frontend/frontend-port                            8080
 
- conan.core/profiles                                                {}
+ fischer.core/profiles                                                {}
 
- conan.core/reporters-configs                                       []
+ fischer.core/reporters-configs                                       []
 
- conan.components.detector/repeat-in-ms                             10000
+ fischer.components.detector/repeat-in-ms                             10000
  }

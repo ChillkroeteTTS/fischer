@@ -1,10 +1,10 @@
 FROM openjdk
 
-RUN adduser --disabled-password --gecos "" --no-create-home conan
-RUN mkdir /conan/ && chown -R conan:conan /conan
-USER conan
-WORKDIR "/conan"
+RUN adduser --disabled-password --gecos "" --no-create-home fischer
+RUN mkdir /fischer/ && chown -R fischer:fischer /fischer
+USER fischer
+WORKDIR "/fischer"
 
-COPY "target/conan-0.1.0-SNAPSHOT-standalone.jar" "/conan/conan.jar"
+COPY "target/fischer-0.1.0-SNAPSHOT-standalone.jar" "/fischer/fischer.jar"
 
-CMD ["java", "-jar", "conan.jar"]
+CMD ["java", "-jar", "fischer.jar"]

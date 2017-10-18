@@ -1,11 +1,11 @@
-(ns conan.prom-test
+(ns fischer.prom-test
   (:require [clojure.test :refer :all]
-            [conan.core :refer :all]
-            [conan.prometheus-provider :as prom]
+            [fischer.core :refer :all]
+            [fischer.prometheus-provider :as prom]
             [clj-time.core :as t]
             [clj-http.client :as client]
             [clojure.data.json :as json]
-            [conan.time-series-provider :as p]
+            [fischer.time-series-provider :as p]
             [clojure.string :as s]))
 
 (defn test-prom-response [metric-name vals]

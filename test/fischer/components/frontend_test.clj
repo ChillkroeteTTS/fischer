@@ -1,6 +1,6 @@
-(ns conan.components.frontend-test
+(ns fischer.components.frontend-test
   (:require [clojure.test :refer :all]
-            [conan.components.frontend :as fe]
+            [fischer.components.frontend :as fe]
             [clj-http.client :as client]
             [com.stuartsierra.component :as cp]
             [ring.mock.request :as mock]

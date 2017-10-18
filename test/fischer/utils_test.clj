@@ -1,6 +1,6 @@
-(ns conan.utils-test
+(ns fischer.utils-test
   (:require [clojure.test :refer :all]
-            [conan.utils :as utils]
+            [fischer.utils :as utils]
             [clojure.java.io :as io]))
 
 (deftest sorted-keyset-test

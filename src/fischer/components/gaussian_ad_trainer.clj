@@ -1,13 +1,13 @@
-(ns conan.components.gaussian-ad-trainer
+(ns fischer.components.gaussian-ad-trainer
   (:require [com.stuartsierra.component :as cp]
             [clojure.tools.logging :as log]
-            [conan.model :as m]
-            [conan.utils :as utils]
+            [fischer.model :as m]
+            [fischer.utils :as utils]
             [clojure.string :as s]
             [outpace.config :refer [defconfig!]]
-            [conan.time-series-provider :as p]
+            [fischer.time-series-provider :as p]
             [overtone.at-at :as at]
-            [conan.utils :as u]))
+            [fischer.utils :as u]))
 
 (defconfig! training-data-to-disk)
 

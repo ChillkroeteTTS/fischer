@@ -1,4 +1,4 @@
-(ns conan.time-series-provider)
+(ns fischer.time-series-provider)
 
 (defprotocol TimeSeriesProvider
   (training-data [_])

@@ -1,4 +1,4 @@
-(ns conan.components.frontend
+(ns fischer.components.frontend
   (:require [com.stuartsierra.component :as cp]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.json :as rjson]

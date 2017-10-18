@@ -1,4 +1,4 @@
-(ns conan.prometheus-provider
+(ns fischer.prometheus-provider
   (:require [clj-time.core :as time]
             [clj-http.client :as client]
             [clojure.data.json :as json]
@@ -6,10 +6,10 @@
             [clj-time.core :as t]
             [clojure.tools.logging :as log]
             [com.stuartsierra.component :as cs]
-            [conan.anomaly-detection :as ad]
-            [conan.utils :as u]
+            [fischer.anomaly-detection :as ad]
+            [fischer.utils :as u]
             [clojure.string :as s]
-            [conan.time-series-provider :as p]
+            [fischer.time-series-provider :as p]
             [com.stuartsierra.component :as cp]))
 
 (defonce day-formatter (f/formatter "yyyy-MM-dd"))

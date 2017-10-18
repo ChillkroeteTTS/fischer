@@ -1,6 +1,6 @@
-(defproject conan "0.1.0-SNAPSHOT"
+(defproject fischer "0.1.0-SNAPSHOT"
   :description "A clojure anomaly detection service"
-  :main conan.core
+  :main fischer.core
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
