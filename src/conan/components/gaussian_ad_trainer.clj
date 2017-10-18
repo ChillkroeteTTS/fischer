@@ -65,8 +65,16 @@
       (into {} (map fill-gaps-in-series X-trans-map)))
     X-trans-map))
 
+(defn- add-artificial-variance [X-trans-map]
+  (let [zero-to-one (fn [val] (if (= 0 val) 1 val))
+        variance-if-necessary (fn [feature-vals]
+                                (if (apply = feature-vals)
+                                  (map (fn [val] (+ val (rand (zero-to-one (/ val 100))))) feature-vals)
+                                  feature-vals))]
+    (reduce-kv #(assoc %1 %2 (variance-if-necessary %3)) {} X-trans-map)))
+
 (defn- trained-profile [model config X-trans-map]
-  (let [sanitized-X-trans-map (fill-time-series-gaps X-trans-map)
+  (let [sanitized-X-trans-map (-> (fill-time-series-gaps X-trans-map) (add-artificial-variance))
         key->props (key->properties sanitized-X-trans-map)
         models (some-> sanitized-X-trans-map
                        (utils/extract-bare-features key->props)

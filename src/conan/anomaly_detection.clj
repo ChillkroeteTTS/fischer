@@ -3,7 +3,8 @@
             [clojure.core.matrix :as mat]
             [clojure.spec.alpha :as s]
             [clojure.spec.alpha :as s]
-            [conan.utils :as utils]))
+            [conan.utils :as utils])
+  (:import (mikera.util.mathz MathsException)))
 
 (s/def ::feature-vector mat/vec?)
 (s/def ::feature-vectors (s/coll-of ::feature-vector))
@@ -50,9 +51,11 @@
 
 (defn- multivariate-predict-one [feature-vector {:keys [mu sigma]}]
   (let [p (count feature-vector)
-        denominator (Math/sqrt (* (Math/pow (* 2 Math/PI) p) (mat/det sigma)))
+        det (if (= (mat/det sigma) 0.0) (Double/MIN_VALUE) (mat/det sigma))
+        denominator (Math/sqrt (* (Math/pow (* 2 Math/PI) p) det))
         x-mu (mat/sub feature-vector mu)
-        exp-term (Math/exp (* -1/2 (mat/mmul (mat/transpose x-mu) (mat/inverse sigma) x-mu)))]
+        inverse (if-let [inv (mat/inverse sigma)] inv (throw (MathsException. "Cannot calculate inverse of sigma")))
+        exp-term (Math/exp (* -1/2 (mat/mmul (mat/transpose x-mu) inverse x-mu)))]
     (/ exp-term denominator))) ; TODO: Calc determinant once per prediction cycle
 
 

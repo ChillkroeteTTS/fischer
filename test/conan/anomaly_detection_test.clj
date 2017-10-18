@@ -19,7 +19,7 @@
                3288.888888888889]]
              (ad/covariance feature-vectors mu))))))
 
-(deftest multivariate-gaussian-test
+(deftest multivariate-scores-test
   (let [mu+sigma {:mu    [50.0 100.0]
                   :sigma (mat/matrix [[858.5
                                        1720.947387513257]

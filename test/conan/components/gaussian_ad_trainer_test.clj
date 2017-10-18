@@ -45,7 +45,7 @@
                                         {:a :a} [1 2]
                                         {:b :b} [4 5 6]})))))
 
-(deftest fill-time-series-gaps
+(deftest fill-time-series-gaps-test
   (testing "it interpolates gaps(nils) in the time series if they appear only once"
     (is (= {{:__name__ :metric1} [1 2 3 4]
             {:__name__ :metric2} [nil 2 3 4]
@@ -57,6 +57,14 @@
                                           {:__name__ :metric3} [1 nil 3 4]
                                           {:__name__ :metric4} [1 2 nil 4]
                                           {:__name__ :metric5} [1 2 3 nil]})))))
+
+(deftest add-artificial-variance-test
+  (testing "it adds artificial variance to features without varaince"
+    (let [res (#'gadt/add-artificial-variance {{:__name__ :metric1} [100 100 100 100]
+                                                 {:__name__ :metric2} [1 2 3 2]})]
+      (prn res)
+      (is (not (apply = (get res
+                             {:__name__ :metric1})))))))
 
 (deftest trained-profile-test
   (testing "it delivers a trained anomaly detection model with metadata about which features where used for training"
