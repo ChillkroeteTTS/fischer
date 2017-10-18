@@ -76,10 +76,11 @@
 (defn- trained-profile [model config X-trans-map]
   (let [sanitized-X-trans-map (-> (fill-time-series-gaps X-trans-map) (add-artificial-variance))
         key->props (key->properties sanitized-X-trans-map)
-        models (some-> sanitized-X-trans-map
+        models (-> sanitized-X-trans-map
                        (utils/extract-bare-features key->props)
                        (write-to-plate!)
                        (#(m/train model %)))]
+    (prn models)
     {:key->props key->props
      :models     models
      :epsylon    (:epsylon config)}))

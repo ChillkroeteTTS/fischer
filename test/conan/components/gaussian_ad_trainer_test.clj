@@ -92,14 +92,14 @@
 
 (def train-rs-1 [{:mu 50.0 :sigma 0.6}])
 (def train-rs-2 [{:mu 40.0 :sigma 0.6}])
-(def expected-rs {:profile1 {:key->props {{:__name__ "metric1"} {:idx 0, :feature-vals [1] :train-sample-complete? true :train-sample-no 1}}
+(def expected-rs {:profile1 {:key->props {{:__name__ "metric1"} {:idx 0, :feature-vals [1 2] :train-sample-complete? true :train-sample-no 2}}
                              :epsylon    0.02
                              :models     train-rs-1}
-                  :profile2 {:key->props {{:__name__ "metric2"} {:idx 0, :feature-vals [2] :train-sample-complete? true :train-sample-no 1}}
+                  :profile2 {:key->props {{:__name__ "metric2"} {:idx 0, :feature-vals [10 11] :train-sample-complete? true :train-sample-no 2}}
                              :epsylon    0.04
                              :models     train-rs-2}})
 
-(def dummy-data {:profile1 {{:__name__ "metric1"} [1]} :profile2 {{:__name__ "metric2"} [2]}})
+(def dummy-data {:profile1 {{:__name__ "metric1"} [1 2]} :profile2 {{:__name__ "metric2"} [10 11]}})
 (defrecord TestNilProvider []
   p/TimeSeriesProvider
   (prediction-data [_] dummy-data)
@@ -108,7 +108,7 @@
 (defrecord TestModel []
   m/Model
   (train [_ data]
-    (get {1 train-rs-1 2 train-rs-2} (first (first data))))
+    (get {1 train-rs-1 10 train-rs-2} (first (first data))))
   (scores [_ _ _] nil)
   (predict [_ _ _] nil))
 

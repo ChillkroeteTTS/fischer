@@ -37,7 +37,7 @@
 (deftest profile->features-test
   (testing "it extracts a profile->feature vector map from a provider")
   (is (= [[:profile1 [1 2]]]
-         (#'d/profile->features (->TestProvider) {:profile1 {{:keymap1 1} {:idx 0} {:keymap2 2} {:idx 1}}}))))
+         (#'d/profile->features (->TestProvider) {:profile1 {{:keymap1 1} {:idx 0 :train-sample-complete? true} {:keymap2 2} {:idx 1 :train-sample-complete? true}}}))))
 
 (deftest profile->score-test
   (with-redefs [m/scores (constantly [0.42])]
