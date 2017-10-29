@@ -3,7 +3,7 @@
            :dockerfile "Dockerfile"
            :build-dir  "."}
   :plugins [[com.roomkey/lein-v "6.2.0"]
-            [io.sarnowski/lein-docker "1.1.0"]]
+            [lein-shell "0.5.0"]]
   :description "A clojure anomaly detection service"
   :main fischer.core
   :license {:name "Eclipse Public License"
@@ -33,6 +33,5 @@
                   ["v" "update"] ;; compute new version & tag it
                   ["clean"]
                   ["uberjar"]
-                  ["docker" "build"]
-                  ;["docker" "push"]
-                  ["vcs" "push"]])
+                  ["vcs" "push"]
+                  ["shell" "./docker_release.sh"]])
