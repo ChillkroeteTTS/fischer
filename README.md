@@ -26,9 +26,11 @@ Example:
 
 ```docker run -v [PATH_TO_YOUR_CONFIG]:/fischer/config.edn fischer```
 
-## Debugging
-To see with which features fischer trained it's model and what the model looks like
-visit `http://[HOST]:[PORT]/models`.
+## Model Training Data
+Please note that fischer can only work with metrics which have been measured for the complete time range specified in the `config.edn`.
+If a metric provides less datapoints than the other metrics, the corresponding metric will be withhold from the anomaly detection algorithm.
+To get detailed information about which data was used to fit the anomaly detection model, Fischer provides a JSON under
+`http://[HOST]:[PORT]/models` containing detailed information about the training data.
 
 ## License
 
