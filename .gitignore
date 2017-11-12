@@ -16,5 +16,7 @@ data
 scores
 predictions
 trainData
-scrape_grafana_dashboard.clj
+src/user.clj
 src/version.clj
+resources/public/js/compiled
+figwheel_server.log
