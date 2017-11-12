@@ -13,14 +13,14 @@
   (testing "it starts and stops of the server"
     (let [handler (atom [(cpj/GET "/" rsp (resp/response ""))])
           fe-cmp (cp/start (fe/->Frontend handler {}))
-          server (:server fe-cmp)]
+          shutdown-fn (:shutdown-fn fe-cmp)]
       (try
         (is (= 200
                (:status (client/get "http://127.0.0.1:8080"))))
         (cp/stop fe-cmp)
         (is (thrown? ConnectException (client/get "http://127.0.0.1:8080")))
         (finally
-          (.stop server))))))
+          (shutdown-fn))))))
 
 (deftest info-endpoint
   (testing "it returns a json containing infos about the trained models"

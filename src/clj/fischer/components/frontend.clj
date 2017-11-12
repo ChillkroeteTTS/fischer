@@ -1,12 +1,12 @@
 (ns fischer.components.frontend
   (:require [com.stuartsierra.component :as cp]
-            [ring.adapter.jetty :as jetty]
             [ring.middleware.json :as rjson]
+            [org.httpkit.server :as server]
             [outpace.config :refer [defconfig!]]
             [ring.util.response :as resp]
             [compojure.core :as cpj]
             [clojure.tools.logging :as log])
-  (:import (org.eclipse.jetty.server Server)))
+  (:import (org.httpkit.server HttpServer)))
 
 (defconfig! frontend-host)
 (defconfig! frontend-port)
@@ -18,7 +18,9 @@
   (resp/response @(:trained-profiles model-trainer)))
 
 (defn merged-routes [handlers model-trainer]
-  (->> (apply cpj/routes (conj handlers (cpj/GET "/models" req (model-trainer-info model-trainer req))))
+  (->> (apply cpj/routes (conj handlers
+                               (cpj/GET "/models" req (model-trainer-info model-trainer req))
+                               (cpj/GET "/ws" req (model-trainer-info model-trainer req))))
        (rjson/wrap-json-response)))
 
 (defrecord Frontend [handlers model-trainer]
@@ -26,15 +28,14 @@
   (start [self]
     (log/info "start frontend with following pre-registered handler")
     (log/info @handlers)
-    (let [server (jetty/run-jetty (merged-routes @handlers model-trainer)
-                                  {:host  frontend-host
-                                   :port  frontend-port
-                                   :join? false})]
-      (assoc self :server server)))
+    (let [shutdown-fn (server/run-server (merged-routes @handlers model-trainer)
+                                    {:host frontend-host
+                                     :port frontend-port})]
+      (assoc self :shutdown-fn shutdown-fn)))
   (stop [self]
     (log/info "stop frontend...")
-    (.stop ^Server (:server self))
-    (dissoc self :server)))
+    ((:shutdown-fn self))
+    (dissoc self :shutdown-fn)))
 
 (defn new-frontend [handlers]
   (map->Frontend {:handlers handlers}))
