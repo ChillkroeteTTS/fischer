@@ -6,7 +6,9 @@
             [ring.mock.request :as mock]
             [clojure.data.json :as json]
             [compojure.core :as cpj]
-            [ring.util.response :as resp])
+            [ring.util.response :as resp]
+            [clojure.core.async :as async]
+            [clojure.string :as s])
   (:import (java.net ConnectException)))
 
 (deftest test-frontent-component
@@ -20,7 +22,21 @@
         (cp/stop fe-cmp)
         (is (thrown? ConnectException (client/get "http://127.0.0.1:8080")))
         (finally
-          (shutdown-fn))))))
+          (shutdown-fn)))))
+  (testing "the ws endpoint works"
+    (with-redefs [fe/handle_event (fn [[event data]] (s/upper-case (:test-str data)))]
+      (let [response (atom "")
+            msg {:event     [:test/test-event {:test-str "test"}]
+                 :id        1
+                 :?data     nil
+                 :send-fn   nil
+                 :?reply-fn #(reset! response %)
+                 :uid       1
+                 :ring-req  {}
+                 :client-id 1}]
+        (async/>!! fe/ch-chsk msg)
+        (Thread/sleep 1)
+        (is (= "TEST" @response))))))
 
 (deftest info-endpoint
   (testing "it returns a json containing infos about the trained models"

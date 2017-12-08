@@ -39,13 +39,6 @@
                               val-per-feature))
                m)}))
 
-(defn multivariate-train [feature-vectors]
-  {:pre [(s/valid? ::feature-vectors feature-vectors)]}
-  (let [m (count feature-vectors)
-        mu (map stats/mean (utils/transpose feature-vectors))]
-    {:mu    mu
-     :sigma (stats/covariance feature-vectors)}))
-
 (defn- gaussian-feature-distribution [[x {:keys [mu sigma]}]]
   (stats/pdf-normal x :mean mu :sd sigma))
 
