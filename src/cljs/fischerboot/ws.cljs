@@ -53,7 +53,7 @@
 (defn stop-router! [] (when-let [stop-f @router_] (stop-f)))
 (defn start-router! []
   (stop-router!)
-  (reset! router_ (sente/start-client-chsk-router! ch-chsk event-msg-handler)))∆
+  (reset! router_ (sente/start-client-chsk-router! ch-chsk event-msg-handler)))
 
 
 (defn start! [] (start-router!))
