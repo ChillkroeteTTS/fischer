@@ -4,7 +4,8 @@
     [cljs.core.async :as async :refer (<! >! put! chan)]
     [taoensso.encore :as encore :refer-macros (have have?)]
     [taoensso.timbre :as timbre :refer-macros (tracef debugf infof warnf errorf)]
-    [taoensso.sente :as sente :refer (cb-success?)])
+    [taoensso.sente :as sente :refer (cb-success?)]
+    [fischerboot.ws-reframe-interop :as rfinterop])
   (:require-macros
     [cljs.core.async.macros :as asyncm :refer (go go-loop)]))
 
@@ -40,7 +41,8 @@
 
 (defmethod -event-msg-handler :chsk/recv
   [{:as ev-msg :keys [?data]}]
-  (infof "Push event from server: %s" ?data))
+  (infof "Push event from server: %s" ?data)
+  (rfinterop/handle-push-event (first ?data) (second ?data)))
 
 (defmethod -event-msg-handler :chsk/handshake
   [{:as ev-msg :keys [?data]}]

@@ -45,24 +45,40 @@
 (defn handle_event [[event data]]
   (str event "///" data))
 
-(defrecord Frontend [handlers model-trainer]
+(defn start-identity-reply! []
+  (async/go-loop []
+    (let [msg (async/<! ch-chsk)
+          ?response (handle_event (:event msg))]
+      (if-let [rply-fn (:?reply-fn msg)]
+        ((:?reply-fn msg) ?response))
+      (recur))))
+
+(defn start-push-predictions! [pred-buffer-ch]
+  (async/go-loop []
+    (let [profiles->prediction-buffer (async/<! pred-buffer-ch)
+          clients (:any @connected-uids)
+          network-viable-map (reduce-kv #(assoc %1 %2 (into [] %3)) {} profiles->prediction-buffer)]
+      (log/info "Send new predictions to following clients: " clients)
+      (doseq [uid clients]
+        (chsk-send! uid [:fischer/predictions-changed network-viable-map]))
+      (recur))))
+
+(defrecord Frontend [handlers model-trainer pred-buffer-ch]
   cp/Lifecycle
   (start [self]
-    (log/info "start frontend with following pre-registered handler")
+    (log/info "start frontend with following pre-registered handlers:")
     (log/info @handlers)
     (let [shutdown-fn (server/run-server (merged-routes @handlers model-trainer)
                                          {:host frontend-host
                                           :port frontend-port})]
-      (async/go-loop []
-        (let [msg (async/<! ch-chsk)
-              ?response (handle_event (:event msg))]
-          (if-let [rply-fn (:?reply-fn msg)]
-            ((:?reply-fn msg) ?response))))
+      (start-identity-reply!)
+      (start-push-predictions! pred-buffer-ch)
       (assoc self :shutdown-fn shutdown-fn)))
   (stop [self]
     (log/info "stop frontend...")
     ((:shutdown-fn self))
     (dissoc self :shutdown-fn)))
 
-(defn new-frontend [handlers]
-  (map->Frontend {:handlers handlers}))
+(defn new-frontend [handlers pred-buffer-ch]
+  (map->Frontend {:handlers handlers
+                  :pred-buffer-ch pred-buffer-ch}))

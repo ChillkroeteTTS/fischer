@@ -9,12 +9,13 @@
             [ring.util.response :as resp]
             [clojure.core.async :as async]
             [clojure.string :as s])
-  (:import (java.net ConnectException)))
+  (:import (java.net ConnectException)
+           (clojure.lang PersistentQueue)))
 
 (deftest test-frontent-component
   (testing "it starts and stops of the server"
     (let [handler (atom [(cpj/GET "/" rsp (resp/response ""))])
-          fe-cmp (cp/start (fe/->Frontend handler {}))
+          fe-cmp (cp/start (fe/->Frontend handler {} nil))
           shutdown-fn (:shutdown-fn fe-cmp)]
       (try
         (is (= 200
@@ -23,6 +24,23 @@
         (is (thrown? ConnectException (client/get "http://127.0.0.1:8080")))
         (finally
           (shutdown-fn)))))
+  (testing "a prediction is pushed to the all ws clients"
+    (let [sended-msgs (atom [])]
+      (with-redefs [fe/chsk-send! #(swap! sended-msgs conj %2)
+                    fe/connected-uids (atom {:any [:uid1]})]
+        (let [handler (atom [])
+              pred-buffer-ch (async/chan)
+              fe-cmp (cp/start (fe/->Frontend handler {} pred-buffer-ch))
+              shutdown-fn (:shutdown-fn fe-cmp)
+              payload {:profile1 (conj PersistentQueue/EMPTY {:p true :e 0.2 :s 0.1})}]
+          (try
+            (async/>!! pred-buffer-ch payload)
+            (Thread/sleep 10)
+            (is (= [[:fischer/predictions-changed payload]] @sended-msgs))
+            (finally
+              (shutdown-fn))))))))
+
+(deftest ws-test
   (testing "the ws endpoint works"
     (with-redefs [fe/handle_event (fn [[event data]] (s/upper-case (:test-str data)))]
       (let [response (atom "")
@@ -35,7 +53,7 @@
                  :ring-req  {}
                  :client-id 1}]
         (async/>!! fe/ch-chsk msg)
-        (Thread/sleep 1)
+        (Thread/sleep 10)
         (is (= "TEST" @response))))))
 
 (deftest info-endpoint

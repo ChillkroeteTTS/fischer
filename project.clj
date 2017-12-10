@@ -42,6 +42,7 @@
                        ;; need to add the compliled assets to the :clean-targets
                        :clean-targets ^{:protect false} ["resources/public/js/compiled"
                                                          :target-path]}}
+  :test-paths ["test/clj"]
   :aliases {"config" ["run" "-m" "outpace.config.generate"]}
   :release-tasks [["vcs" "assert-committed"]
                   ["v" "update"]                            ;; compute new version & tag it

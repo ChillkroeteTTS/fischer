@@ -13,7 +13,9 @@
             [clojure.spec.alpha :as s]
             [fischer.reporter.console-reporter :as cr]
             [fischer.reporter.file-reporter :as fr]
-            [fischer.reporter.prometheus-reporter :as promr])
+            [fischer.reporter.prometheus-reporter :as promr]
+            [fischer.reporter.buffered-channel-reporter :as bcr]
+            [clojure.core.async :as async])
   (:gen-class))
 (s/def ::profile (s/keys :req-un [::step-size ::days-back ::queries ::epsylon]))
 (s/def ::profiles (s/map-of (constantly true) ::profile))
@@ -31,28 +33,35 @@
      :explanation (str (s/explain-str ::profiles profiles) "\n"
                        (s/explain-str ::reporters reporters))}))
 
-(defn reporters [reporter-confs handler-atom]
-  (mapv (fn [reporter-conf]
-         (case (:type reporter-conf)
-           :file (fr/->FileReporter (:file-path reporter-conf))
-           :console (cr/->ConsoleReporter)
-           :prometheus (promr/new-prometheus-reporter! handler-atom (:path reporter-conf))))
-       reporter-confs))
-
-(defn fischer-system [provider model profiles reporters-configs]
-  (let [validation (validate-config profiles reporters-configs)
-        handler-atom (atom [])
-        reporters (reporters reporters-configs handler-atom)]
-    (if (:valid? validation)
-      (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider model profiles) [])
-                     :detector (cp/using (d/new-detector provider model reporters) [:model-trainer])
-                     :frontend (cp/using (fe/new-frontend handler-atom) [:model-trainer]))
-      (do
-        (log/error "Your config is not in the expected format. Details:\n" (:explanation validation))
-        (when (not debug) (System/exit 1))))))
+(defn fischer-system [provider model profiles reporters handler-atom pred-buffer-ch]
+  (cp/system-map :model-trainer (cp/using (gadt/new-gaussian-ad-trainer provider model profiles) [])
+                 :detector (cp/using (d/new-detector provider model reporters) [:model-trainer])
+                 :frontend (cp/using (fe/new-frontend handler-atom pred-buffer-ch) [:model-trainer])))
 
 (def prom-provider (prom/->PrometheusProvider host port profiles))
 (def gaussian-model (mgauss/->MultivariateGaussianModel))
+(def profile->predictions-buffer (atom {}))
+
+(defn reporters [reporter-confs handler-atom pred-buffer-ch]
+  (let [configurable-reporters (mapv (fn [reporter-conf]
+                                       (case (:type reporter-conf)
+                                         :file (fr/->FileReporter (:file-path reporter-conf))
+                                         :console (cr/->ConsoleReporter)
+                                         :prometheus (promr/new-prometheus-reporter! handler-atom (:path reporter-conf))))
+                                     reporter-confs)]
+    (conj configurable-reporters (bcr/->BufferedChannelReporter pred-buffer-ch profile->predictions-buffer))))
 
 (defn -main [& argv]
-  (cp/start (fischer-system prom-provider gaussian-model profiles reporters-configs)))
+  (Thread/setDefaultUncaughtExceptionHandler
+    (reify Thread$UncaughtExceptionHandler
+      (uncaughtException [_ thread ex]
+        (log/error ex "Uncaught exception on" (.getName thread)))))
+  (let [validation (validate-config profiles reporters-configs)
+        handler-atom (atom [])
+        pred-buffer-ch (async/chan)
+        reporters (reporters reporters-configs handler-atom pred-buffer-ch)]
+    (if (:valid? validation)
+      (cp/start (fischer-system prom-provider gaussian-model profiles reporters handler-atom pred-buffer-ch))
+      (do
+        (log/error "Your config is not in the expected format. Details:\n" (:explanation validation))
+        (when (not debug) (System/exit 1))))))

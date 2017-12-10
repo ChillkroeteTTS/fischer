@@ -6,7 +6,8 @@
             [overtone.at-at :as at]
             [com.stuartsierra.component :as cp]
             [fischer.reporter.prediction-reporter :as r]
-            [fischer.models.gaussian-model :as gauss]))
+            [fischer.models.gaussian-model :as gauss]
+            [clojure.core.async :as async]))
 
 (defrecord TestProvider []
   p/TimeSeriesProvider
@@ -30,11 +31,12 @@
 (deftest core-test
   (testing "it detects an anomaly"
     (let [prediction-atom (atom [])
-          test-reporter (->TestReporter prediction-atom)]
+          test-reporter [(->TestReporter prediction-atom)]]
       (with-redefs [at/every (fn [_ fn _ _ _] (fn))
-                    at/stop identity
-                    c/reporters (constantly [test-reporter])]
-        (let [s (cp/start (c/fischer-system (->TestProvider) (gauss/->GaussianModel) profile-conf []))]
+                    at/stop identity]
+        (let [s (cp/start (c/fischer-system (->TestProvider) (gauss/->GaussianModel)
+                                            profile-conf test-reporter
+                                            (atom []) (async/chan)))]
           (is (= [{:normal-profile    {:e 0.02
                                        :p false
                                        :s 0.08615711720739454}
@@ -45,13 +47,19 @@
           (cp/stop s))))))
 
 (deftest reporters-test
+  (testing "it alwaysc creates a channel reporter"
+    (is (= [fischer.reporter.buffered_channel_reporter.BufferedChannelReporter]
+           (map type (c/reporters [] nil nil)))))
   (testing "it creates a file reporter"
-    (is (= [fischer.reporter.file_reporter.FileReporter]
-           (map type (c/reporters [{:type :file :file-path nil}] nil)))))
+    (is (= [fischer.reporter.file_reporter.FileReporter
+            fischer.reporter.buffered_channel_reporter.BufferedChannelReporter]
+           (map type (c/reporters [{:type :file :file-path nil}] nil nil)))))
   (testing "it creates a console reporter"
-    (is (= [fischer.reporter.console_reporter.ConsoleReporter]
-           (map type (c/reporters [{:type :console}] nil)))))
+    (is (= [fischer.reporter.console_reporter.ConsoleReporter
+            fischer.reporter.buffered_channel_reporter.BufferedChannelReporter]
+           (map type (c/reporters [{:type :console}] nil nil)))))
   (testing "it creates multiple reporter"
     (is (= [fischer.reporter.file_reporter.FileReporter
-           fischer.reporter.console_reporter.ConsoleReporter]
-           (map type (c/reporters [{:type :file :file-path nil} {:type :console}] nil))))))
+            fischer.reporter.console_reporter.ConsoleReporter
+            fischer.reporter.buffered_channel_reporter.BufferedChannelReporter]
+           (map type (c/reporters [{:type :file :file-path nil} {:type :console}] nil nil))))))
