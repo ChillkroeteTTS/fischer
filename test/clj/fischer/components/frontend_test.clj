@@ -24,7 +24,7 @@
         (is (thrown? ConnectException (client/get "http://127.0.0.1:8080")))
         (finally
           (shutdown-fn)))))
-  (testing "a prediction is pushed to the all ws clients"
+  (testing "a prediction is pushed to all ws clients"
     (let [sended-msgs (atom [])]
       (with-redefs [fe/chsk-send! #(swap! sended-msgs conj %2)
                     fe/connected-uids (atom {:any [:uid1]})]
@@ -35,7 +35,7 @@
               payload {:profile1 (conj PersistentQueue/EMPTY {:p true :e 0.2 :s 0.1})}]
           (try
             (async/>!! pred-buffer-ch payload)
-            (Thread/sleep 10)
+            (Thread/sleep 20)
             (is (= [[:fischer/predictions-changed payload]] @sended-msgs))
             (finally
               (shutdown-fn))))))))
