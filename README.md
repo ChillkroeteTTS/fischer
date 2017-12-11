@@ -1,12 +1,12 @@
 # Fischer [![Build Status](https://travis-ci.org/ChillkroeteTTS/fischer.svg?branch=master)](https://travis-ci.org/ChillkroeteTTS/fischer)
-> Dedicated to Gerhard Fischer, one of the inventors of the hand held metal detector.
+> Named after Gerhard Fischer, one of the inventors of the hand held metal detector.
 Also the german term for a fisherman.
 
 Proper application monitoring and especially alarming is crucial to quickly identify failures in your production applications.
 However in an environment with many different metrics and applications maintenance and setup becomes a tedious task.
 
 Fischer aims to keep you up to date about any unusual behaviour of your metrics while keeping the configuration effort minimal.
-Thus it enables you to focus on further development of your application instead of watching on your metrics the whole day.
+It thus enables you to focus on developing your application instead of watching all day long on your metrics.
 
 Fischer uses an anomaly detection algorithm based on a normal distribution fitted to historical data of your metrics.
 Currently only prometheus is configurable as data source, but more such as graphite will follow.
@@ -27,7 +27,7 @@ Example:
 ```docker run -v [PATH_TO_YOUR_CONFIG]:/fischer/config.edn fischer```
 
 ## Model Training Data
-Please note that fischer can only work with metrics which have been measured for the complete time range specified in the `config.edn`.
+Please note that fischer only uses metrics which have been measured for the complete time range specified in the `config.edn`.
 If a metric provides less datapoints than the other metrics, the corresponding metric will be withhold from the anomaly detection algorithm.
 To get detailed information about which data was used to fit the anomaly detection model, Fischer provides a JSON under
 `http://[HOST]:[PORT]/models` containing detailed information about the training data.
